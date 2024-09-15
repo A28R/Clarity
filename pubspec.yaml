@@ -37,8 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   provider: ^6.1.2
   flutter_spinkit: ^5.2.1
-  flutter_floating_bottom_bar: ^1.2.1+1
-  salomon_bottom_bar: ^3.3.2
+  floating_bottom_navigation_bar: ^1.5.2
+  page_view_dot_indicator: ^2.3.0
 
 dev_dependencies:
   flutter_test:
