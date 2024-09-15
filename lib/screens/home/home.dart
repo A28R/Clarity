@@ -1,101 +1,124 @@
-//homescreen of application
-import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/cupertino.dart';
+//import 'package:flutter/cupertino.dart';
+
+import 'home_page.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final List<IconData> icons;
+  final List<String> labels;
+  final List<Color> colors;
+
+  const Home({
+    super.key,
+    required this.icons,
+    required this.labels,
+    required this.colors,
+  });
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
+  //creating selectedPage variable and a pagecontroller for pageview
   late int selectedPage;
   late final PageController _pageController;
 
   @override
   void initState() {
+    //initializing selectedPage and _pageController vars
     selectedPage = 0;
-    _pageController = PageController(initialPage: selectedPage);
+    _pageController =
+        PageController(initialPage: selectedPage, viewportFraction: 1);
 
     super.initState();
   }
 
-  final List<IconData> icons = [
-    CupertinoIcons.mic,
-    CupertinoIcons.viewfinder_circle,
-    CupertinoIcons.signature
-  ];
-
-  final List<String> labels = [
-    "Text-To-Speech",
-    "Text-Magnifier",
-    "Image-Text-Selection"
-  ];
-
-  final List<Color> colors = [
-    Colors.blue,
-    Colors.yellow,
-    Colors.green,
+  //lists of icons, labels, and colors (we can import our own icons&fonts later)
+  final List<Function> funcs = [
+        () {},
+        () {},
+        () {},
+        () {},
+        () {},
   ];
 
   @override
   Widget build(BuildContext context) {
-    const pageCount = 5;
-
+    const pageCount = 6;
     return Scaffold(
-      backgroundColor: Colors.cyan.shade500,
-      body: SafeArea(
-        child: Column(
+      //stack so we can have a bottom nav bar for page views
+      body: Stack(alignment: Alignment.bottomCenter, children: [
+        Column(
           children: [
             Expanded(
               child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (page) {
-                    setState(() {
-                      selectedPage = page;
-                    });
-                  },
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "CLARITY",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 45.0,
-                              letterSpacing: 1.0),
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() {
+                    selectedPage = page;
+                  });
+                },
+                children: [
+                  //Page 1, contains the swipe to start screen
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop('');
+                    },
+                      child: const HomePage()
+                  ),
+
+                  //generates remaining pages from a bunch of lists at the top
+                  //alter the func list to navigate to a function of a page
+                  ...List.generate(
+                    pageCount - 1,
+                    (i) => GestureDetector(
+                      onTap: () {
+                        funcs[i];
+                      },
+                      child: Container(
+                        color: widget.colors[i],
+                        child: Column(
+                          //center widgets
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            //Mid page icon
+                            Icon(widget.icons[i]),
+                            //text below icon
+                            Text(
+                              widget.labels[i],
+                              style: const TextStyle(fontSize: 20.0),
+                            ),
+                          ],
                         ),
-                        const Text(
-                          "SWIPE TO START",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 35.0,
-                              letterSpacing: 1.0),
-                        ),
-                      ],
+                      ),
                     ),
-                    ...List.generate(pageCount, (index) {
-                      return Center(
-                        child: Text('Page $index'),
-                      );
-                    }),
-                  ]),
+                  ),
+                ],
+              ),
             ),
+          ],
+        ),
+
+        //adding my own bottom navigation widget
+        LiamNavBar(
+
+            //adding a parameter which is the widget within
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(20.0),
               child: PageViewDotIndicator(
                 currentItem: selectedPage,
                 count: pageCount,
-                unselectedColor: Colors.black26,
+                unselectedColor: Colors.blueGrey,
                 selectedColor: Colors.blue,
                 duration: const Duration(milliseconds: 200),
-                boxShape: BoxShape.rectangle,
+                boxShape: BoxShape.circle,
+                size: const Size(40.0, 40.0),
+                unselectedSize: const Size(20.0, 20.0),
                 onItemClicked: (index) {
                   _pageController.animateToPage(
                     index,
@@ -105,71 +128,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 },
               ),
             ),
-            const SizedBox(
-              height: 16,
-            ),
-          ],
-        ),
-      ),
-      /*Container(
-        padding: const EdgeInsets.fromLTRB(20.0, 50.0, 20.0, 30.0),
-        child: ListView(
-          children: [
-            const Text(
-              "CLARITY", textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 45.0,
-                  letterSpacing: 1.0
-              ),
-            ),
-            const Text(
-              "SWIPE TO START", textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 35.0,
-                  letterSpacing: 1.0
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                border: Border.fromBorderSide(
-                  BorderSide(
-                      color: Colors.blue.shade900,
-                      width: 20.0,
-                      style: BorderStyle.solid),
-                ),
-              ),
-              height: 500.0,
-              clipBehavior: Clip.hardEdge,
-              child: PageView(
-                controller: _pageControl,
-                children: [0,1,2].map((i) => Container(
-                  color: colors[i],
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          iconSize: 50.0,
-                          onPressed: () {},
-                          icon: Icon(icons[i]),
-                        ),
-                        Text(
-                          labels[i],
-                          style: const TextStyle(fontSize: 20.0),
-                        ),
-                      ],
-                    ),
-                  ),
-                )).toList(),
-              ),
-            )
-          ],
-        ),
-      ),*/
+
+            //adding a parameter which is bg color
+            Colors.redAccent),
+      ]),
     );
   }
 }
