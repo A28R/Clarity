@@ -2,8 +2,6 @@ import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
 import 'package:provider/provider.dart';
-//import 'package:flutter/cupertino.dart';
-
 import 'home_page.dart';
 
 class Home extends StatefulWidget {
@@ -12,11 +10,7 @@ class Home extends StatefulWidget {
   final List<Color> colors;
 
   const Home({
-    super.key,
-    required this.icons,
-    required this.labels,
-    required this.colors,
-  });
+    super.key, required this.icons, required this.labels, required this.colors,});
 
   @override
   State<Home> createState() => _HomeState();
@@ -38,13 +32,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   //lists of icons, labels, and colors (we can import our own icons&fonts later)
-  final List<Function> funcs = [
-        () {},
-        () {},
-        () {},
-        () {},
-        () {},
-  ];
+  final List<Function> funcs = [() {}, () {}, () {}, () {}, () {},];
 
   @override
   Widget build(BuildContext context) {
@@ -56,20 +44,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           children: [
             Expanded(
               child: PageView(
+                physics: ClampingScrollPhysics(),
                 controller: _pageController,
                 onPageChanged: (page) {
                   setState(() {
                     selectedPage = page;
-                  });
-                },
+                  });},
+
                 children: [
                   //Page 1, contains the swipe to start screen
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop('');
-                    },
-                      child: const HomePage()
-                  ),
+                  HomePage(settings:(){}, demos:(){}),
 
                   //generates remaining pages from a bunch of lists at the top
                   //alter the func list to navigate to a function of a page
@@ -92,21 +76,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             Text(
                               widget.labels[i],
                               style: const TextStyle(fontSize: 20.0),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                            ),],),),),),],),),],),
 
         //adding my own bottom navigation widget
         LiamNavBar(
-
             //adding a parameter which is the widget within
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -124,14 +97,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     index,
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeInOut,
-                  );
-                },
-              ),
-            ),
-
-            //adding a parameter which is bg color
+                  );},),),
+            //adding a second parameter, bg color
             Colors.redAccent),
-      ]),
-    );
-  }
-}
+      ]),);}}

@@ -1,5 +1,4 @@
 import 'package:clarity/screens/home/home.dart';
-import 'package:clarity/screens/splash_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -58,6 +57,7 @@ class MyApp extends StatelessWidget {
           Colors.orange,
           Colors.deepPurple
         ]),
+
       },
     );
   }
