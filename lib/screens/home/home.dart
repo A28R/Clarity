@@ -32,7 +32,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   //lists of icons, labels, and colors (we can import our own icons&fonts later)
-  final List<Function> funcs = [() {}, () {}, () {}, () {}, () {},];
+  List<Function> funcs = [
+    () => print("u"),
+        () {},
+        () {},
+        () {},
+        () {},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +59,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
                 children: [
                   //Page 1, contains the swipe to start screen
-                  HomePage(settings:(){}, demos:(){}),
+                  HomePage( demos:(){}),
 
                   //generates remaining pages from a bunch of lists at the top
                   //alter the func list to navigate to a function of a page
                   ...List.generate(
                     pageCount - 1,
                     (i) => GestureDetector(
-                      onTap: () {
-                        funcs[i];
-                      },
+                      onTap: () => funcs[i],
                       child: Container(
                         color: widget.colors[i],
                         child: Column(

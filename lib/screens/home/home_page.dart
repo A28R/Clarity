@@ -2,10 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
-  final Function settings;
   final Function demos;
 
-  HomePage({super.key, required this.settings, required this.demos});
+  HomePage({super.key, required this.demos});
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +28,18 @@ class HomePage extends StatelessWidget {
                 fontSize: 35.0,
                 letterSpacing: 1.0),
           ),
-          SizedBox(height: 50.0,),
+          const SizedBox(height: 50.0),
 
           //this is the cool part, contains blocks
           Row(
             children: [
 
-              SizedBox(width: 40.0,),
+              const SizedBox(width: 40.0,),
 
               //settings block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
-                  onTap: () => settings,
+                  onTap: () => Navigator.of(context).pop("/settings"),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
@@ -50,7 +49,7 @@ class HomePage extends StatelessWidget {
                         boxShadow: [BoxShadow(color: Colors.black.withAlpha(20),
                             blurRadius: 20,
                             spreadRadius: 10),],
-                        border: Border.fromBorderSide(
+                        border: const Border.fromBorderSide(
                             BorderSide(color: Colors.teal,width: 4.0),
                         )
 
@@ -65,7 +64,7 @@ class HomePage extends StatelessWidget {
                           //text below icon
                           Text(
                             "Settings",
-                            style: const TextStyle(fontSize: 20.0),
+                            style: TextStyle(fontSize: 20.0),
                           ),
                         ],
                       ),
@@ -73,8 +72,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 30.0,),
-
+              const SizedBox(width: 30.0),
               //demos block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
@@ -103,7 +101,7 @@ class HomePage extends StatelessWidget {
                           //text below icon
                           Text(
                             "Demos",
-                            style: const TextStyle(fontSize: 20.0),
+                            style: TextStyle(fontSize: 20.0),
                           ),
                         ],
                       ),
