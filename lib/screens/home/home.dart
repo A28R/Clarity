@@ -21,6 +21,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late int selectedPage;
   late final PageController _pageController;
 
+  //list of functions for running
+  late List<Function> funcs;
+
   @override
   void initState() {
     //initializing selectedPage and _pageController vars
@@ -28,17 +31,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _pageController =
         PageController(initialPage: selectedPage, viewportFraction: 1);
 
+    //setting up list of funcs
+    funcs = [
+          () => print("u"),
+          () => Navigator.pushNamed(context, "/magnifier"),
+          () {},
+          () {},
+          () {},
+    ];
     super.initState();
   }
 
-  //lists of icons, labels, and colors (we can import our own icons&fonts later)
-  List<Function> funcs = [
-    () => print("u"),
-        () {},
-        () {},
-        () {},
-        () {},
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,14 +63,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
                 children: [
                   //Page 1, contains the swipe to start screen
-                  HomePage( demos:(){}),
+                  HomePage(),
 
                   //generates remaining pages from a bunch of lists at the top
                   //alter the func list to navigate to a function of a page
                   ...List.generate(
                     pageCount - 1,
                     (i) => GestureDetector(
-                      onTap: () => funcs[i],
+                      onTap: () => funcs[i](),
                       child: Container(
                         color: widget.colors[i],
                         child: Column(

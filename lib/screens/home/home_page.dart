@@ -2,9 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
-  final Function demos;
 
-  HomePage({super.key, required this.demos});
+  HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class HomePage extends StatelessWidget {
               //settings block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop("/settings"),
+                  onTap: () => Navigator.pushNamed(context,"/settings"),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
@@ -76,7 +75,7 @@ class HomePage extends StatelessWidget {
               //demos block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
-                  onTap: () => demos,
+                  onTap: () => Navigator.pushNamed(context,"/demos"),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(

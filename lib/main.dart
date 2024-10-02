@@ -1,5 +1,7 @@
 import 'package:clarity/screens/home/home.dart';
+import 'package:clarity/screens/pages/demo.dart';
 import 'package:clarity/screens/pages/settings.dart';
+import 'package:clarity/screens/pages/magnifier.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +19,7 @@ final List<String> labels = [
   "Colorblindness-Filtration",
   "Ai-Questions"
 ];
+
 final List<Color> colors = [
   Colors.blue,
   Colors.yellow,
@@ -44,6 +47,8 @@ class MyApp extends StatelessWidget {
             colors:colors
         ),
         '/settings': (context) => Settings(),
+        '/demos': (context) => Demos(),
+        '/magnifier': (context) => MyMagnifier(),
       },
     );
   }
