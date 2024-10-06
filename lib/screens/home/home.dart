@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
@@ -8,9 +9,15 @@ class Home extends StatefulWidget {
   final List<IconData> icons;
   final List<String> labels;
   final List<Color> colors;
+  final CameraDescription camera;
 
   const Home({
-    super.key, required this.icons, required this.labels, required this.colors,});
+    super.key,
+    required this.icons,
+    required this.labels,
+    required this.colors,
+    required this.camera,
+  });
 
   @override
   State<Home> createState() => _HomeState();

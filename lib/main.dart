@@ -4,6 +4,7 @@ import 'package:clarity/screens/pages/settings.dart';
 import 'package:clarity/screens/pages/magnifier.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
 final List<IconData> icons = [
   CupertinoIcons.mic,
@@ -28,12 +29,15 @@ final List<Color> colors = [
   Colors.deepPurple
 ];
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final cameras = await availableCameras();
+  runApp(MyApp(camera:cameras.first));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final CameraDescription camera;
+  const MyApp({super.key, required  this.camera});
 
   // This widget is the root of your application.
   @override
@@ -44,11 +48,14 @@ class MyApp extends StatelessWidget {
         '/': (context) => Home(
             icons:icons,
             labels:labels,
-            colors:colors
+            colors:colors,
+            camera:camera
         ),
         '/settings': (context) => Settings(),
         '/demos': (context) => Demos(),
-        '/magnifier': (context) => MyMagnifier(),
+        '/magnifier': (context) => MyMagnifier(
+          camera: camera,
+        ),
       },
     );
   }

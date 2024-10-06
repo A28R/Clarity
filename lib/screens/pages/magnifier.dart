@@ -1,95 +1,35 @@
 import 'dart:io';
 import 'package:app_settings/app_settings.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MyMagnifier extends StatefulWidget {
-  const MyMagnifier({super.key});
+  final CameraDescription camera;
+  const MyMagnifier({super.key, required this.camera});
 
   @override
   State<MyMagnifier> createState() => _MyMagnifierState();
 }
 
 class _MyMagnifierState extends State<MyMagnifier> {
-  late File _image = File("assets/logo.png");
-  final picker = ImagePicker();
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
+  double _zoomLevel = 1.0;
 
-  /*Image Picker function to get image from gallery
-  tries to get  photo and gives error msg thangy if fails
-   */
-  Future getImageFromGallery() async {
-    try {
-      final _newimage = await ImagePicker().pickImage(source: ImageSource.gallery);
-      setState(() {
-        _image = File(_newimage!.path);
-      });
-    } on PlatformException catch (e) {
-      print(e.code);
-      if (e.code.contains("photo_access_denied")) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: Text('Photos Permission Required'),
-            content: Text('This app needs photos access to take photos. Please grant permission in the app settings.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              TextButton(
-                child: Text('Open Settings'),
-                onPressed: () => AppSettings.openAppSettings(),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      print(e);
-    }
-    //check whether we have photos permission
-
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(widget.camera, ResolutionPreset.max);
+    _initializeControllerFuture = _controller.initialize();
   }
 
-//Image Picker function to get image from camera
-  Future getImageFromCamera() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      }
-    });
-  }
-
-  Future showOptions() async {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            child: Text('Photo Gallery'),
-            onPressed: () {
-              // close the options modal
-              Navigator.of(context).pop();
-              // get image from gallery
-              getImageFromGallery();
-            },
-          ),
-          CupertinoActionSheetAction(
-            child: Text('Camera'),
-            onPressed: () {
-              // close the options modal
-              Navigator.of(context).pop();
-              // get image from camera
-              getImageFromCamera();
-            },
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -100,20 +40,56 @@ class _MyMagnifierState extends State<MyMagnifier> {
         title: Text("Magnifier Page"),
         backgroundColor: Colors.brown.shade900,
       ),
-      body: Container(
-        child: ListView(
-          children: [
-            TextButton(
-              child: Text('Select Image'),
-              onPressed: showOptions,
-            ),
-            Center(
-              child: (_image != null && _image.path != "assets/logo.png")
-                  ? Image.file(_image)
-                  : Text('No Image selected'),
-            ),
-          ],
-        ),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return Stack(
+              children: [
+                CameraPreview(_controller),
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    //how thick is it
+                    height: 75,
+
+                    //margins control how far off the bottom of the screen this nav bar is
+                    margin:
+                        const EdgeInsets.only(right: 24, left: 24, bottom: 24),
+
+                    //decoration sets bg color, border radius, boxshadow, and much more
+                    decoration: BoxDecoration(
+                        color: Colors.orangeAccent,
+                        borderRadius: BorderRadius.circular(20.0),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withAlpha(20),
+                              blurRadius: 20,
+                              spreadRadius: 10),
+                        ]),
+
+                    //allows for a child widget to go inside
+                    child: Slider(
+                      value: _zoomLevel,
+                      min: 1.0,
+                      max: 5.0,
+                      onChanged: (value) {
+                        setState(() {
+                          _zoomLevel = value;
+                          _controller.setZoomLevel(_zoomLevel);
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
     );
   }
