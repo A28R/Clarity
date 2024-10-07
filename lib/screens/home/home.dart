@@ -9,14 +9,18 @@ class Home extends StatefulWidget {
   final List<IconData> icons;
   final List<String> labels;
   final List<Color> colors;
-  final CameraDescription camera;
+
+  //UNCOMMENT FOR PHYSICAL TESTING
+  // final CameraDescription camera;
 
   const Home({
     super.key,
     required this.icons,
     required this.labels,
     required this.colors,
-    required this.camera,
+
+    //UNCOMMENT FOR PHYSICAL TESTING
+    // required this.camera,
   });
 
   @override

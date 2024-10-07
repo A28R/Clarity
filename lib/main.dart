@@ -32,13 +32,22 @@ final List<Color> colors = [
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final cameras = await availableCameras();
-  runApp(MyApp(camera:cameras.first));
+
+  //COMMENT THIS LINE FOR VIRTUAL TESTING/ UNCOMMENT FOR PHYSICAL TESTING
+  // runApp(MyApp(camera:cameras.first));
+
+  //COMMENT THIS LINE FOR PHYSICAL TESTING/ UNCOMMENT FOR VIRTUAL TESTING
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final CameraDescription camera;
-  const MyApp({super.key, required  this.camera});
 
+  //UNCOMMENT THESE LINES FOR TESTING ON A PHYSICAL DEVICE/ COMMENT FOR VIRTUAL TESTING
+  // final CameraDescription camera;
+  // const MyApp({super.key, required this.camera});
+
+  //COMMENT THESE LINES FOR PHYSICAL TESTING/ UNCOMMENT FOR VIRTUAL TESTING
+  const MyApp({super.key});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -49,13 +58,16 @@ class MyApp extends StatelessWidget {
             icons:icons,
             labels:labels,
             colors:colors,
-            camera:camera
+
+            //UNCOMMENT FOR PHYSICAL TESTING
+            // camera: camera,
         ),
         '/settings': (context) => Settings(),
         '/demos': (context) => Demos(),
-        '/magnifier': (context) => MyMagnifier(
-          camera: camera,
-        ),
+        //UNCOMMENT FOR PHYSICAL TESTING
+        // '/magnifier': (context) => MyMagnifier(
+        //   camera: camera,
+        // ),
       },
     );
   }
