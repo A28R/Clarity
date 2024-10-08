@@ -63,7 +63,7 @@ class HomePage extends StatelessWidget {
                           //text below icon
                           Text(
                             "Settings",
-                            style: TextStyle(fontSize: 20.0),
+                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -100,7 +100,43 @@ class HomePage extends StatelessWidget {
                           //text below icon
                           Text(
                             "Demos",
-                            style: TextStyle(fontSize: 20.0),
+                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 30.0,),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.pushNamed(context,"/info"),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: Colors.black.withAlpha(20),
+                              blurRadius: 20,
+                              spreadRadius: 10),],
+                          border: const Border.fromBorderSide(
+                            BorderSide(color: Colors.teal,width: 4.0),
+                          )
+
+                      ),
+                      child: const Column(
+                        //center widgets
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          //Mid page icon
+                          Icon(CupertinoIcons.info_circle),
+                          //text below icon
+                          Text(
+                            "Info",
+                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),

@@ -10,17 +10,11 @@ class Home extends StatefulWidget {
   final List<String> labels;
   final List<Color> colors;
 
-  //UNCOMMENT FOR PHYSICAL TESTING
-  // final CameraDescription camera;
-
   const Home({
     super.key,
     required this.icons,
     required this.labels,
     required this.colors,
-
-    //UNCOMMENT FOR PHYSICAL TESTING
-    // required this.camera,
   });
 
   @override
@@ -44,7 +38,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     //setting up list of funcs
     funcs = [
-          () => print("u"),
+          () => Navigator.pushNamed(context,'/tts'),
           () => Navigator.pushNamed(context, "/magnifier"),
           () {},
           () {},
@@ -100,7 +94,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         //adding my own bottom navigation widget
         LiamNavBar(
             //adding a parameter which is the widget within
-            Padding(
+            child:Padding(
               padding: const EdgeInsets.all(20.0),
               child: PageViewDotIndicator(
                 currentItem: selectedPage,
@@ -118,5 +112,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     curve: Curves.easeInOut,
                   );},),),
             //adding a second parameter, bg color
-            Colors.redAccent),
+            bgcolor:Colors.redAccent),
       ]),);}}
