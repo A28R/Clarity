@@ -14,7 +14,7 @@ class _DemosState extends State<Demos> {
     return Scaffold(
       backgroundColor: Colors.brown.shade100,
       appBar: AppBar(
-        title: Text("Settings Page"),
+        title: Text("Demos Page"),
         backgroundColor: Colors.brown.shade700,
       ),
     );
