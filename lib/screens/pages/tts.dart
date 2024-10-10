@@ -194,12 +194,9 @@ class _TextToSpeechState extends State<TextToSpeech> {
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.menu,
-            color: Colors.white,
-          ),
-          onPressed: () {},
+        leading: TextButton(
+          child: Icon(Icons.arrow_back_ios),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Padding(

@@ -59,10 +59,11 @@ void main() async {
   //fetching cameras for the app (will return zero if we have none)
   final cameras = await availableCameras();
 
-  try {
+  if (cameras.length != 0) {
     //we try to run the app by passing in the first of these cameras (back cam)
     runApp(MyApp(camera:cameras));
-  } catch(e) {
+
+  } else {
     //if that doesnt work, we pass no camera in
     runApp(MyApp(camera:null));
   }
