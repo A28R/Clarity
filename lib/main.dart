@@ -1,4 +1,5 @@
 import 'package:clarity/screens/home/home.dart';
+import 'package:clarity/screens/pages/color_filter.dart';
 import 'package:clarity/screens/pages/demo.dart';
 import 'package:clarity/screens/pages/info.dart';
 import 'package:clarity/screens/pages/redirect.dart';
@@ -57,6 +58,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   //fetching cameras for the app (will return zero if we have none)
+  //also returns 0 if no cameras available
   final cameras = await availableCameras();
 
   if (cameras.length != 0) {
@@ -108,6 +110,10 @@ class MyApp extends StatelessWidget {
         //if there's no camera, we go to the Redirect widget
         if (camera != null) '/magnifier': (context) => MyMagnifier(cameras: camera),
         if (camera == null) '/magnifier': (context) => Redirect(),
+
+        if (camera != null) '/colorfilter': (context) => MyColorFilter(cameras:camera),
+        if (camera == null) '/colorfilter': (context) => Redirect(),
+
       },
     );
   }

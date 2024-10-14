@@ -41,7 +41,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           () => Navigator.pushNamed(context,'/tts'),
           () => Navigator.pushNamed(context, "/magnifier"),
           () {},
-          () {},
+          () => Navigator.pushNamed(context, "/colorfilter"),
           () {},
     ];
     super.initState();
@@ -89,7 +89,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             Text(
                               widget.labels[i],
                               style: const TextStyle(fontSize: 20.0),
-                            ),],),),),),],),),],),
+                            ),],),),),),],),),
+          ],),
 
         //adding my own bottom navigation widget
         LiamNavBar(
@@ -113,4 +114,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   );},),),
             //adding a second parameter, bg color
             bgcolor:Colors.redAccent),
+
       ]),);}}

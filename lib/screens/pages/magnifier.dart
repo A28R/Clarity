@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:app_settings/app_settings.dart';
 import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../shared/loading.dart';
 
@@ -11,10 +13,9 @@ class MyMagnifier extends StatefulWidget {
   const MyMagnifier({super.key, required this.cameras});
   @override
   State<MyMagnifier> createState() => _MyMagnifierState();
-
 }
 
-class _MyMagnifierState extends State<MyMagnifier>{
+class _MyMagnifierState extends State<MyMagnifier> {
   late CameraController _controller;
   late Future<void> _initializeCamFuture;
   late CameraDescription front_cam;
@@ -23,6 +24,7 @@ class _MyMagnifierState extends State<MyMagnifier>{
   double _zoomLevel = 1.0;
   bool flash = false;
   bool _isSwitchingCamera = false;
+  bool _hasCameraPermission = false;
 
   List<XFile> photos = [];
   int selectedPhoto = -1;
@@ -50,8 +52,19 @@ class _MyMagnifierState extends State<MyMagnifier>{
     super.dispose();
   }
 
+  void _checkCameraPermission() async {
+    final status = await Permission.camera.status;
+    print(status.isGranted);
+    if (status.isGranted != _hasCameraPermission)
+      setState(()=>_hasCameraPermission = status.isGranted);
+  }
+  Future<bool> _getCameraPermissions() {
+    return Permission.camera.request().isGranted;
+  }
+
   @override
   Widget build(BuildContext context) {
+    _checkCameraPermission();
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -61,47 +74,83 @@ class _MyMagnifierState extends State<MyMagnifier>{
       ),
       body: Stack(
         children: [
-          if (selectedPhoto == -1)
-            FutureBuilder<void>(
-              future: _initializeCamFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    !_isSwitchingCamera) {
-                  return SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: 100,
-                        child: CameraPreview(_controller),
+          Stack(children: [
+            if (!_hasCameraPermission)
+              Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Your Camera is Disabled. Open Settings to fix this."),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(Colors.red)
+                    ),
+                    child: Container(
+                      child: const Text(
+                          'Open Settings',
                       ),
                     ),
-                  );
-                } else {
-                  return const Loading();
-                }
-              },
-            ),
-          if (selectedPhoto != -1)
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: 100,
-                  child: Image(
-                    opacity: const AlwaysStoppedAnimation(07),
-                    image: FileImage(
-                      File(photos[selectedPhoto].path),
+                    onPressed: () => AppSettings.openAppSettings(),
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.all(Colors.red)
                     ),
-                    fit: BoxFit.cover,
+                    child: Container(
+                      child: const Text(
+                        'Reload',
+                      ),
+                    ),
+                    onPressed: () => _hasCameraPermission,
+                  ),
+                ],
+              ),
+            ),
+            if (selectedPhoto == -1 && _hasCameraPermission)
+              FutureBuilder<void>(
+                future: _initializeCamFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      !_isSwitchingCamera) {
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: 100,
+                          child: CameraPreview(_controller),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const Loading();
+                  }
+                },
+              ),
+            if (selectedPhoto != -1 && _hasCameraPermission)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: 100,
+                    child: Image(
+                      opacity: const AlwaysStoppedAnimation(07),
+                      image: FileImage(
+                        File(photos[selectedPhoto].path),
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            ),
-          DraggableScrollableSheet(
+          ]),
+          if (_hasCameraPermission)
+            DraggableScrollableSheet(
             controller: DraggableScrollableController(),
             initialChildSize: 0.17,
             minChildSize: 0.17,
@@ -322,6 +371,7 @@ class _MyMagnifierState extends State<MyMagnifier>{
               );
             },
           ),
+
         ],
       ),
     );
