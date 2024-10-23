@@ -41,7 +41,7 @@ class _AIQuestionsState extends State<AIQuestions> {
       result = '';
     });
 
-    if (API_URL == API_URL1) {
+    if (API_URL == API_URL1 || true) {
       final imageBytes = File(imagePath!).readAsBytesSync();
       final decodedImage = img.decodeImage(imageBytes);
       if (decodedImage == null) throw Exception('Failed to decode image');
@@ -87,63 +87,6 @@ class _AIQuestionsState extends State<AIQuestions> {
         });
       }
     } else {
-      final imageBytes = image.readAsBytesSync();
-      final decodedImage = img.decodeImage(imageBytes);
-      // Resize image to match model input requirements
-      //final processedImage = img.copyResize(decodedImage, width: 70, height: 70);
-
-      final base64Image = base64Encode(img.encodePng(decodedImage));
-      final input = '<image>data:image/jpeg;base64,${base64Image}</image>\n${text}';
-      try {
-        final response = await http.post(
-          Uri.parse(API_URL),
-          headers: {
-            'Authorization': 'Bearer $API_TOKEN',
-            'Content-Type': 'application/json',
-            "x-wait-for-model": "true"
-          },
-          body: jsonEncode({
-            'inputs': input,
-            'parameters': {
-              'max_new_tokens': 500,
-              'temperature': 0.7,
-              'top_p': 0.9,
-              'top_k': 50,
-              'repetition_penalty': 1.2,
-              'do_sample': true,
-              'return_full_text': false
-            },
-            'options': {
-              'use_cache': true,
-              'wait_for_model': true,
-              'wait_for_model_timeout': 30000
-            }
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          print("200");
-          print(response.body);
-          setState(() {
-            result = response.body;
-          });
-        } else {
-          print("not 200-2");
-          print(response.body);
-          setState(() {
-            result = 'Error: ${response.statusCode}';
-          });
-        }
-      } catch (e) {
-        setState(() {
-          result = 'Error: $e';
-        });
-      } finally {
-        setState(() {
-          _isLoading = false;
-          result = result;
-        });
-      }
     }
 
   }
