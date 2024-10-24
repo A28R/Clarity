@@ -1,5 +1,7 @@
 import 'dart:io';
-import 'dart:ui' as ui;
+import 'dart:ui';
+import 'package:clarity/themes/theme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
@@ -7,9 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../shared/loading.dart';
+import 'color_filter/color_filter_funcs.dart';
 
-enum ColorblindnessType { normal, protanopia, deuteranopia, tritanopia, blackAndWhite }
+enum ColorblindnessType {
+  normal,
+  protanopia,
+  deuteranopia,
+  tritanopia,
+  protanomaly,
+  deuteranomaly,
+  tritanomaly,
+  achromatopsia
+}
 
 class MyColorFilter extends StatefulWidget {
   final dynamic cameras;
@@ -20,6 +33,8 @@ class MyColorFilter extends StatefulWidget {
 
 class _MyColorFilterState extends State<MyColorFilter> {
   late CameraController _controller;
+  late DraggableScrollableController _dragController;
+  bool _isControllerAttached = false;
   late Future<void> _initializeCamFuture;
   late CameraDescription front_cam;
   late CameraDescription back_cam;
@@ -30,14 +45,402 @@ class _MyColorFilterState extends State<MyColorFilter> {
   bool _hasCameraPermission = false;
 
   List<XFile> photos = [];
+  late XFile photo;
   int selectedPhoto = -1;
 
   @override
   void initState() {
     super.initState();
+    _dragController = DraggableScrollableController()
+      ..addListener(() {
+        if (!_isControllerAttached && _dragController.isAttached) {
+          setState(() {
+            _isControllerAttached = true;
+          });
+        }
+      });
     back_cam = widget.cameras.first;
     front_cam = widget.cameras[1];
     _initializeCamera(back_cam);
+  }
+
+
+  Future<void> _showDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Understanding Color Vision',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3748),
+            ),
+          ),
+          content: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoSection(
+                    'Types of Color Vision Deficiency:',
+                    'Protan (Red-Weak): Difficulty distinguishing between reds and greens, with reds appearing darker.\n\n'
+                        'Deutan (Green-Weak): Similar to protan, but greens appear darker instead of reds.\n\n'
+                        'Tritan (Blue-Yellow): Rare condition affecting blue and yellow perception.\n\n'
+                        'Achromats: Complete color blindness, seeing only in shades of gray.',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildInfoSection(
+                    'Important Note:',
+                    'This test is designed for educational purposes and preliminary screening only. For an accurate diagnosis, please consult an eye care professional.',
+                    isWarning: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4299E1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Take a Test',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.open_in_new,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+              onPressed: () => _launchURL(),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: lighterTertiaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Learn More',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.open_in_new,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+              onPressed: () => _launchURL1(),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: const Text(
+                'Exit',
+                style: TextStyle(
+                  color: Color(0xFF4A5568),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+
+          ],
+          actionsPadding: const EdgeInsets.all(16),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoSection(String title, String content, {bool isWarning = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isWarning ? const Color(0xFFFFF5F5) : const Color(0xFFF7FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isWarning ? const Color(0xFFFED7D7) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isWarning ? const Color(0xFFE53E3E) : const Color(0xFF2D3748),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 16,
+              color: isWarning ? const Color(0xFF742A2A) : const Color(0xFF4A5568),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchURL1() async {
+    const url = 'https://www.aoa.org/healthy-eyes/eye-and-vision-conditions/color-vision-deficiency';
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+  }
+
+  Widget buildColorblindnessSelector() {
+    return Align(
+      alignment: Alignment.center,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: ColorblindnessType.values.map((ColorblindnessType type) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentFilter = type;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: BoxDecoration(
+                  color: _currentFilter == type
+                      ? lighterTertiaryColor
+                      : Colors.grey,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(type.toString().split('.').last),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget buildActionButtonsRow1() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildFlashButton(),
+        _buildSwitchCameraButton(),
+        _buildTakePictureButton()
+      ],
+    );
+  }
+
+  Widget buildActionButtonsRow2() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildShareButton(),
+        _buildDeleteButton(),
+      ],
+    );
+  }
+
+  Widget buildActionButton({required IconData icon, required VoidCallback onPressed}) {
+    return SizedBox(
+      width: 75,
+      child: TextButton(
+        onPressed: onPressed,
+        child: Icon(icon),
+      ),
+    );
+  }
+  Widget buildPhotoSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 7, bottom: 30),
+        child: SizedBox(
+          height: 100,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: photos.length,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedPhoto = (selectedPhoto != index) ? index : -1;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Container(
+                    decoration: (selectedPhoto == index)
+                        ? BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: const Border.fromBorderSide(
+                                BorderSide(color: Colors.white, width: 2.0)),
+                          )
+                        : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image(
+                        height: 100,
+                        width: 100,
+                        opacity: const AlwaysStoppedAnimation(0.7),
+                        image: FileImage(File(photos[index].path)),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlashButton() {
+    return LiamNavBar(
+      child: TextButton(
+        onPressed: () async {
+          if (flash) {
+            setState(() {
+              flash = !flash;
+              _controller.setFlashMode(FlashMode.off);
+            });
+          } else {
+            setState(() {
+              flash = !flash;
+              _controller.setFlashMode(FlashMode.torch);
+            });
+          }
+        },
+        child: const Icon(CupertinoIcons.light_max),
+      ),
+      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      width: 75,
+      radius: 40.0,
+    );
+  }
+
+  Widget _buildSwitchCameraButton() {
+    return LiamNavBar(
+      child: TextButton(
+        onPressed: () async {
+          setState(() {
+            _isSwitchingCamera = true;
+          });
+          if (_controller.description == back_cam) {
+            _controller.setDescription(front_cam);
+          } else {
+            _controller.setDescription(back_cam);
+          }
+          setState(() {
+            _isSwitchingCamera = false;
+          });
+        },
+        child: const Icon(CupertinoIcons.switch_camera),
+      ),
+      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      width: 75,
+      radius: 40.0,
+    );
+  }
+
+  Widget _buildTakePictureButton() {
+    return LiamNavBar(
+      child: TextButton(
+        onPressed: () async {
+          XFile photo = await _controller.takePicture();
+          photo = await applyColorblindnessFilter(photo, _currentFilter);
+          setState(() {
+            photos.add(photo);
+            selectedPhoto = photos.indexOf(photo);
+          });
+        },
+        child: const Icon(CupertinoIcons.photo_camera_solid),
+      ),
+      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      width: 75,
+      radius: 40.0,
+    );
+  }
+
+  Widget _buildShareButton() {
+    return LiamNavBar(
+      child: TextButton(
+        onPressed: () {
+          if (selectedPhoto != -1) {
+            Share.shareXFiles(
+              [photos.elementAt(selectedPhoto)],
+              subject: "Subject Placeholder",
+              text: "Placeholder",
+            );
+          }
+        },
+        child: const Icon(CupertinoIcons.share),
+      ),
+      bgcolor: (selectedPhoto == -1) ? Colors.grey : lighterTertiaryColor,
+      width: 75,
+      radius: 40.0,
+    );
+  }
+
+  Widget _buildDeleteButton() {
+    return LiamNavBar(
+      child: CupertinoButton(
+        onPressed: () {
+          setState(() {
+            photos.removeAt(selectedPhoto);
+            selectedPhoto = -1;
+          });
+        },
+        child: const Icon(CupertinoIcons.delete),
+      ),
+      bgcolor: (selectedPhoto == -1) ? Colors.grey : lighterTertiaryColor,
+      width: 75,
+      radius: 40.0,
+    );
   }
 
   void _initializeCamera(CameraDescription camera) async {
@@ -57,12 +460,16 @@ class _MyColorFilterState extends State<MyColorFilter> {
 
   void _checkCameraPermission() async {
     final status = await Permission.camera.status;
-    print(status.isGranted);
-    if (status.isGranted != _hasCameraPermission)
-      setState(()=>_hasCameraPermission = status.isGranted);
+    if (status.isGranted != _hasCameraPermission) {
+      setState(() => _hasCameraPermission = status.isGranted);
+    }
   }
-  Future<bool> _getCameraPermissions() {
-    return Permission.camera.request().isGranted;
+
+  _launchURL() async {
+    final Uri url = Uri.parse("https://enchroma.com/pages/color-blindness-test");
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   @override
@@ -71,9 +478,23 @@ class _MyColorFilterState extends State<MyColorFilter> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text("ColorFilter Page"),
-        backgroundColor: Colors.brown.shade900.withOpacity(0.7),
+        title: Text(
+          'Color Filter'.toUpperCase(),
+          style: TextStyle(
+              color: lighterTertiaryColor,
+              fontWeight: FontWeight.w800,
+              fontSize: 24),
+        ),
+        centerTitle: true,
         elevation: 0,
+        backgroundColor: oppositeTertiaryColor.withOpacity(0.7),
+        leading: TextButton(
+          child: Icon(
+            Icons.arrow_back_ios,
+            color: tertiaryColor,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Stack(
         children: [
@@ -85,26 +506,20 @@ class _MyColorFilterState extends State<MyColorFilter> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("Your Camera is Disabled. Open Settings to fix this."),
+                    const Text("Your Camera is Disabled. Open Settings to fix this."),
                     ElevatedButton(
                       style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.red)
-                      ),
-                      child: Container(
-                        child: const Text(
-                          'Open Settings',
-                        ),
+                          backgroundColor: WidgetStateProperty.all(Colors.red)),
+                      child: const Text(
+                        'Open Settings',
                       ),
                       onPressed: () => AppSettings.openAppSettings(),
                     ),
                     ElevatedButton(
                       style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.red)
-                      ),
-                      child: Container(
-                        child: const Text(
-                          'Reload',
-                        ),
+                          backgroundColor: WidgetStateProperty.all(Colors.red)),
+                      child: const Text(
+                        'Reload',
                       ),
                       onPressed: () => _hasCameraPermission,
                     ),
@@ -119,45 +534,18 @@ class _MyColorFilterState extends State<MyColorFilter> {
                       !_isSwitchingCamera) {
                     return Stack(
                       children: [
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        child: FittedBox(
-                          fit: BoxFit.cover,
-                          child: SizedBox(
-                            width: 100,
-                            child: Stack(
-                                children: [
-
-                                  CustomPaint(
-                                    painter: ColorblindnessPainter(_currentFilter),
-                                    child: CameraPreview(_controller),
-                                  ),
-                            ],
-
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            child: SizedBox(
+                              width: 100,
+                              child: CameraPreview(_controller),
                             ),
                           ),
                         ),
-                      ),
-                        Align(
-                          alignment: Alignment.center,
-                          child: DropdownButton<ColorblindnessType>(
-                            value: _currentFilter,
-                            isExpanded: true,
-                            onChanged: (ColorblindnessType? newValue) {
-                              setState(() {
-                                _currentFilter = newValue!;
-                              });
-                            },
-                            items: ColorblindnessType.values.map((ColorblindnessType type) {
-                              return DropdownMenuItem<ColorblindnessType>(
-                                value: type,
-                                child: Text(type.toString().split('.').last),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                  ],
+                      ],
                     );
                   } else {
                     return const Loading();
@@ -185,202 +573,42 @@ class _MyColorFilterState extends State<MyColorFilter> {
           ]),
           if (_hasCameraPermission)
             DraggableScrollableSheet(
-              controller: DraggableScrollableController(),
-              initialChildSize: 0.17,
-              minChildSize: 0.17,
-              maxChildSize: (photos.isNotEmpty) ? 0.46 : 0.3,
+              controller: _dragController,
+              initialChildSize: 0.28,
+              minChildSize: 0.28,
+              maxChildSize: (photos.isNotEmpty) ? 0.45 : 0.28,
               snap: true,
-              snapSizes: (photos.isNotEmpty) ? [0.17, 0.3, 0.46] : [0.17, 0.3],
+              snapSizes: (photos.isNotEmpty) ? [0.28,0.45] : [0.28],
               builder: (context, controller) {
                 return Container(
-                  padding: EdgeInsets.fromLTRB(6.0, 0.0, 6.0, 0.0),
+                  padding: const EdgeInsets.fromLTRB(6.0, 10.0, 6.0, 10.0),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   child: SingleChildScrollView(
-                    physics: ClampingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     controller: controller,
                     child: Column(
                       children: [
-                        SizedBox(height: 40.0),
-                        SizedBox(height: 10.0),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              LiamNavBar(
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      if (flash) {
-                                        setState(() {
-                                          flash = !flash;
-                                          _controller.setFlashMode(FlashMode.off);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          flash = !flash;
-                                          _controller
-                                              .setFlashMode(FlashMode.torch);
-                                        });
-                                      }
-                                    },
-                                    child: Icon(CupertinoIcons.light_max),
-                                  ),
-                                  bgcolor: (selectedPhoto != -1)
-                                      ? Colors.grey
-                                      : Colors.orangeAccent,
-                                  width: 75,
-                                  radius: 40.0),
-                              LiamNavBar(
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        _isSwitchingCamera = true;
-                                      });
-                                      if (_controller.description == back_cam) {
-                                        _controller.setDescription(front_cam);
-                                      } else {
-                                        _controller.setDescription(back_cam);
-                                      }
-                                      setState(() {
-                                        _isSwitchingCamera = false;
-                                      });
-                                    },
-                                    child: Icon(CupertinoIcons.switch_camera),
-                                  ),
-                                  bgcolor: (selectedPhoto != -1)
-                                      ? Colors.grey
-                                      : Colors.orangeAccent,
-                                  width: 75,
-                                  radius: 40.0),
-                              LiamNavBar(
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      XFile photo =
-                                      await _controller.takePicture();
-                                      setState(() {
-                                        photos.add(photo);
-                                      });
-                                    },
-                                    child:
-                                    Icon(CupertinoIcons.photo_camera_solid),
-                                  ),
-                                  bgcolor: (selectedPhoto != -1)
-                                      ? Colors.grey
-                                      : Colors.orangeAccent,
-                                  width: 75,
-                                  radius: 40.0),
-                              LiamNavBar(
-                                  child: TextButton(
-                                    onPressed: () {
-                                      if (selectedPhoto != -1) {
-                                        Share.shareXFiles(
-                                          [photos.elementAt(selectedPhoto)],
-                                          subject: "Subject Placeholder",
-                                          text: "Placeholder",
-                                        );
-                                      }
-                                    },
-                                    child: Icon(CupertinoIcons.share),
-                                  ),
-                                  bgcolor: (selectedPhoto == -1)
-                                      ? Colors.grey
-                                      : Colors.orangeAccent,
-                                  width: 75,
-                                  radius: 40.0),
-                              LiamNavBar(
-                                  child: CupertinoButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        photos.removeAt(selectedPhoto);
-                                        selectedPhoto = -1;
-                                      });
-                                    },
-                                    child: Icon(CupertinoIcons.delete),
-                                  ),
-                                  bgcolor: (selectedPhoto == -1)
-                                      ? Colors.grey
-                                      : Colors.orangeAccent,
-                                  width: 75,
-                                  radius: 40.0),
-                            ],
+                        if (selectedPhoto == -1) const Text(
+                          "COLORBLINDNESS MODE",
+                          style: TextStyle(
+                            letterSpacing: 1.0,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 23.0,
+                            color: Colors.white
                           ),
                         ),
-                        if (photos.isNotEmpty) SizedBox(height: 10.0),
-                        if (photos.isNotEmpty)
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Padding(
-                                  padding:
-                                  const EdgeInsets.only(left: 7, bottom: 30),
-                                  child: Container(
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10)),
-                                    child: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: photos.length,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            if (selectedPhoto != index) {
-                                              setState(() {
-                                                selectedPhoto = index;
-                                                _controller
-                                                    .setFlashMode(FlashMode.off);
-                                              });
-                                            } else if (selectedPhoto == index) {
-                                              setState(() {
-                                                selectedPhoto = -1;
-                                              });
-                                            }
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(2),
-                                            child: Container(
-                                              decoration: (selectedPhoto == index)
-                                                  ? BoxDecoration(
-                                                  borderRadius:
-                                                  BorderRadius.circular(
-                                                      10),
-                                                  border:
-                                                  Border.fromBorderSide(
-                                                      BorderSide(
-                                                          color: Colors
-                                                              .white,
-                                                          width: 2.0)))
-                                                  : null,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                BorderRadius.circular(10),
-                                                child: Image(
-                                                  height: 100,
-                                                  width: 100,
-                                                  opacity:
-                                                  const AlwaysStoppedAnimation(
-                                                      07),
-                                                  image: FileImage(
-                                                    File(photos[index].path),
-                                                  ),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        if (selectedPhoto == -1) const SizedBox(height: 5.0,),
+                        const SizedBox(height: 14.0), // Top padding
+                        if (selectedPhoto == -1) buildColorblindnessSelector(),
+                        if (selectedPhoto == -1) const SizedBox(height:10.0),
+                        if (selectedPhoto == -1) buildActionButtonsRow1(),
+                        if (selectedPhoto != -1) buildActionButtonsRow2(),
+                        const SizedBox(height: 14.0), // Top padding
+                        if (photos.isNotEmpty) buildPhotoSelector(), // Padding between rows
                       ],
                     ),
                   ),
@@ -390,66 +618,5 @@ class _MyColorFilterState extends State<MyColorFilter> {
         ],
       ),
     );
-  }
-}
-class ColorblindnessPainter extends CustomPainter {
-  final ColorblindnessType type;
-
-  ColorblindnessPainter(this.type);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (type == ColorblindnessType.normal) return;
-
-    final paint = Paint();
-    paint.blendMode = BlendMode.modulate;
-
-    switch (type) {
-      case ColorblindnessType.protanopia:
-        paint.colorFilter = ColorFilter.matrix([
-          0.567, 0.433, 0, 0, 0,
-          0.558, 0.442, 0, 0, 0,
-          0, 0.242, 0.758, 0, 0,
-          0, 0, 0, 1, 0,
-        ]);
-        print("ayy3");
-        break;
-      case ColorblindnessType.deuteranopia:
-        paint.colorFilter = ColorFilter.matrix([
-          0.625, 0.375, 0, 0, 0,
-          0.7, 0.3, 0, 0, 0,
-          0, 0.3, 0.7, 0, 0,
-          0, 0, 0, 1, 0,
-        ]);
-        print("ayy2");
-        break;
-      case ColorblindnessType.tritanopia:
-        paint.colorFilter = ColorFilter.matrix([
-          0.95, 0.05, 0, 0, 0,
-          0, 0.433, 0.567, 0, 0,
-          0, 0.475, 0.525, 0, 0,
-          0, 0, 0, 1, 0,
-        ]);
-        print("ayy");
-        break;
-      case ColorblindnessType.blackAndWhite:
-        paint.colorFilter = ColorFilter.matrix([
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0, 0, 0, 1, 0,
-        ]);
-        print("lil tecca");
-        break;
-      default:
-        return;
-    }
-
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return oldDelegate is ColorblindnessPainter && oldDelegate.type != type;
   }
 }

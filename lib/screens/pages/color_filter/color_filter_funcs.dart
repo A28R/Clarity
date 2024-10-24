@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:image/image.dart' as img;
-import 'color_filter.dart';
+import '../color_filter.dart';
 import 'dart:math';
 
 // Protanomaly correction (mild red-green color blindness)

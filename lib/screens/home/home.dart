@@ -1,20 +1,22 @@
-import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:page_view_dot_indicator/page_view_dot_indicator.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import 'home_page.dart';
+import 'package:clarity/themes/theme.dart';
 
 class Home extends StatefulWidget {
   final List<IconData> icons;
   final List<String> labels;
   final List<Color> colors;
+  final List<String> descriptions;
 
   const Home({
     super.key,
     required this.icons,
     required this.labels,
     required this.colors,
+    required this.descriptions,
   });
 
   @override
@@ -38,21 +40,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     //setting up list of funcs
     funcs = [
-          () => Navigator.pushNamed(context,'/tts'),
-          () => Navigator.pushNamed(context, "/magnifier"),
-          () {},
-          () => Navigator.pushNamed(context, "/colorfilter"),
-          () {},
+      () => Navigator.pushNamed(context, '/tts'),
+      () => Navigator.pushNamed(context, "/magnifier"),
+      () => Navigator.pushNamed(context, "/colorfilter"),
+      () => Navigator.pushNamed(context, "/aiquestions"),
     ];
     super.initState();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    const pageCount = 6;
+    const pageCount = 5;
     return Scaffold(
+      backgroundColor: primaryColor,
       //stack so we can have a bottom nav bar for page views
       body: Stack(alignment: Alignment.bottomCenter, children: [
         Column(
@@ -64,8 +64,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 onPageChanged: (page) {
                   setState(() {
                     selectedPage = page;
-                  });},
-
+                  });
+                },
                 children: [
                   //Page 1, contains the swipe to start screen
                   HomePage(),
@@ -75,7 +75,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   ...List.generate(
                     pageCount - 1,
                     (i) => GestureDetector(
-                      onTap: () => funcs[i](),
+                      onTap: () {
+                        funcs[i]();
+                        HapticFeedback.heavyImpact();
+                      },
                       child: Container(
                         color: widget.colors[i],
                         child: Column(
@@ -84,35 +87,70 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             //Mid page icon
-                            Icon(widget.icons[i]),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                              child: Text(
+                                widget.labels[i].toUpperCase(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 33.0, fontWeight: FontWeight.w900, color: tertiaryColor, ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Icon(widget.icons[i], size: 300, color: tertiaryColor,),
                             //text below icon
-                            Text(
-                              widget.labels[i],
-                              style: const TextStyle(fontSize: 20.0),
-                            ),],),),),),],),),
-          ],),
+                            const SizedBox(height: 20),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),
+                              child: Text(
+
+                                widget.descriptions[i],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w500, color: tertiaryColor),
+                              ),
+                            ),
+
+
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
 
         //adding my own bottom navigation widget
-        LiamNavBar(
-            //adding a parameter which is the widget within
-            child:Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: PageViewDotIndicator(
-                currentItem: selectedPage,
-                count: pageCount,
-                unselectedColor: Colors.blueGrey,
-                selectedColor: Colors.blue,
-                duration: const Duration(milliseconds: 200),
-                boxShape: BoxShape.circle,
-                size: const Size(40.0, 40.0),
-                unselectedSize: const Size(20.0, 20.0),
-                onItemClicked: (index) {
-                  _pageController.animateToPage(
-                    index,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                  );},),),
-            //adding a second parameter, bg color
-            bgcolor:Colors.redAccent),
-
-      ]),);}}
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24.0),
+          child: LiamNavBar(
+              //adding a parameter which is the widget within
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: PageViewDotIndicator(
+                  currentItem: selectedPage,
+                  count: pageCount,
+                  unselectedColor: primaryColor,
+                  selectedColor: tertiaryColor,
+                  duration: const Duration(milliseconds: 200),
+                  boxShape: BoxShape.circle,
+                  size: const Size(40.0, 40.0),
+                  unselectedSize: const Size(20.0, 20.0),
+                  onItemClicked: (index) {
+                    _pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+              ),
+              //adding a second parameter, bg color
+              bgcolor: darkerSecondaryColor),
+        ),
+      ]),
+    );
+  }
+}

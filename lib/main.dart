@@ -1,4 +1,5 @@
 import 'package:clarity/screens/home/home.dart';
+import 'package:clarity/screens/pages/ai_questions.dart';
 import 'package:clarity/screens/pages/color_filter.dart';
 import 'package:clarity/screens/pages/demo.dart';
 import 'package:clarity/screens/pages/info.dart';
@@ -6,7 +7,6 @@ import 'package:clarity/screens/pages/redirect.dart';
 import 'package:clarity/screens/pages/settings.dart';
 import 'package:clarity/screens/pages/magnifier.dart';
 import 'package:clarity/screens/pages/tts.dart';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -22,7 +22,7 @@ Camera handles fetching camera and other data
 
 
 final List<IconData> icons = [
-  CupertinoIcons.mic,
+  CupertinoIcons.mic_circle,
   CupertinoIcons.viewfinder_circle,
   CupertinoIcons.zoom_in,
   CupertinoIcons.color_filter,
@@ -30,17 +30,22 @@ final List<IconData> icons = [
 ];
 final List<String> labels = [
   "Text-To-Speech",
-  "Text-Magnifier",
-  "AI Zoom",
-  "Colorblindness-Filtration",
-  "Ai-Questions"
+  "Magnifier",
+  "Colorblindness Filter",
+  "AI Questions"
 ];
+final List<String> descriptions = [
+  "Recognizes text from an image, then recites the text",
+  "Magnifies the live camera with a slider, allows user to take pictures",
+  "Filters live camera using various color blindness presets",
+  "Uses AI to answer questions about an image"
+];
+
 final List<Color> colors = [
-  Colors.blue,
-  Colors.yellow,
-  Colors.green,
-  Colors.orange,
-  Colors.deepPurple
+  Colors.blue.shade700.withAlpha(200),
+  Colors.red.shade900,
+  Colors.pink.shade800,
+  Colors.deepPurple.shade800
 ];
 //These lists above contain info for the home widget;
 //they have corresponding (by index) icons, labels, and colors displayed in the home widget pageview
@@ -89,7 +94,7 @@ class MyApp extends StatelessWidget {
 
     //we return a material app
     return MaterialApp(
-
+      debugShowCheckedModeBanner: false,
       //setting the initial route
       initialRoute: '/',
 
@@ -98,12 +103,15 @@ class MyApp extends StatelessWidget {
         '/': (context) => Home(
             icons:icons,
             labels:labels,
-            colors:colors,
+            colors: colors,
+            descriptions:descriptions,
         ),
         '/settings': (context) => Settings(),
         '/demos': (context) => Demos(),
         '/info': (context) => Info(),
         '/tts': (context) => TextToSpeech(),
+        '/aiquestions': (context) => AIQuestions(),
+
 
         //Special route becuase physical devices don't have cameras
         //if we have a camera, we make an instance of the MyMagnifier widget
