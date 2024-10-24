@@ -20,13 +20,13 @@ class _AIQuestionsState extends State<AIQuestions> {
 
   // Replace with your actual API token
   static const String API_TOKEN = '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';
-  static const String API_URL1 = 'https://api-inference.huggingface.co/models/dandelin/vilt-b32-finetuned-vqa';
-  static const String API_URL2 = 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-11B-Vision-Instruct';
-  static String API_URL = API_URL1;
+  static const String API_URL = 'https://api-inference.huggingface.co/models/dandelin/vilt-b32-finetuned-vqa';
 
   File? _image;
   final ImagePicker _picker = ImagePicker();
   String result = '';
+  late var result1;
+  late var result2;
   List<bool> isSelected = [true, false];
 
   Future<String> processImageForAPI(File image) async {
@@ -41,7 +41,6 @@ class _AIQuestionsState extends State<AIQuestions> {
       result = '';
     });
 
-    if (API_URL == API_URL1 || true) {
       final imageBytes = File(imagePath!).readAsBytesSync();
       final decodedImage = img.decodeImage(imageBytes);
       if (decodedImage == null) throw Exception('Failed to decode image');
@@ -63,15 +62,21 @@ class _AIQuestionsState extends State<AIQuestions> {
           }),
         );
 
+
+        List<Map<String, dynamic>> results = List<Map<String, dynamic>>.from(
+            jsonDecode(response.body).map((item) => Map<String, dynamic>.from(item))
+        );
+
+        //top 2 answers
+        result1 = results[0]['answer'];
+        result2 = results[1]['answer'];
+        print("Top 2 results in descending order (1-2)");
+        print(result1);
+        print(result2);
+
+
         if (response.statusCode == 200) {
-          print("200");
-          print(response.body);
-          setState(() {
-            result = response.body;
-          });
         } else {
-          print("not 200");
-          print(response.body);
           setState(() {
             result = 'Error: ${response.statusCode}';
           });
@@ -86,8 +91,6 @@ class _AIQuestionsState extends State<AIQuestions> {
           result = result;
         });
       }
-    } else {
-    }
 
   }
 
@@ -158,35 +161,6 @@ class _AIQuestionsState extends State<AIQuestions> {
               ],
             ),
             SizedBox(height: 20,),
-            Align(
-              alignment: Alignment.center,
-              child: ToggleButtons(
-                isSelected: isSelected,
-                onPressed: (int index) {
-                  setState(() {
-                    for (int buttonIndex = 0; buttonIndex < isSelected.length; buttonIndex++) {
-                      if (buttonIndex == index) {
-                        isSelected[buttonIndex] = true;
-                        API_URL = API_URL1;
-                      } else {
-                        isSelected[buttonIndex] = false;
-                        API_URL = API_URL2;
-                      }
-                    }
-                  });
-                },
-                children: const <Widget>[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0,vertical: 5.0),
-                    child: Text("API New"),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0,vertical: 5.0),
-                    child: Text("API Old"),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 16),
             if (_image != null) ...[
               Image.file(

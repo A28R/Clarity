@@ -154,9 +154,10 @@ class _MyMagnifierState extends State<MyMagnifier> {
             controller: DraggableScrollableController(),
             initialChildSize: 0.17,
             minChildSize: 0.17,
-            maxChildSize: (photos.isNotEmpty) ? 0.46 : 0.3,
+            maxChildSize: (photos.isNotEmpty) ? 0.46 : 0.32,
             snap: true,
-            snapSizes: (photos.isNotEmpty) ? [0.17, 0.3, 0.46] : [0.17, 0.3],
+            snapAnimationDuration: Duration(milliseconds: 300),
+            snapSizes: (photos.isNotEmpty) ? [0.17, 0.32, 0.46] : [0.17, 0.32],
             builder: (context, controller) {
               return Container(
                 padding: EdgeInsets.fromLTRB(6.0, 0.0, 6.0, 0.0),
@@ -188,25 +189,102 @@ class _MyMagnifierState extends State<MyMagnifier> {
                         ),
                         bgcolor: Colors.orangeAccent,
                       ),
+                      if (photos.isNotEmpty) SizedBox(height: 10.0),
+                      if (photos.isNotEmpty)
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Padding(
+                                padding:
+                                const EdgeInsets.only(left: 7, bottom: 30),
+                                child: Container(
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: photos.length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          if (selectedPhoto != index) {
+                                            setState(() {
+                                              selectedPhoto = index;
+                                              _controller
+                                                  .setFlashMode(FlashMode.off);
+                                            });
+                                          } else if (selectedPhoto == index) {
+                                            setState(() {
+                                              selectedPhoto = -1;
+                                            });
+                                          }
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(2),
+                                          child: Container(
+                                            decoration: (selectedPhoto == index)
+                                                ? BoxDecoration(
+                                                borderRadius:
+                                                BorderRadius.circular(
+                                                    10),
+                                                border:
+                                                Border.fromBorderSide(
+                                                    BorderSide(
+                                                        color: Colors
+                                                            .white,
+                                                        width: 2.0)))
+                                                : null,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                              BorderRadius.circular(10),
+                                              child: Image(
+                                                height: 100,
+                                                width: 100,
+                                                opacity:
+                                                const AlwaysStoppedAnimation(
+                                                    07),
+                                                image: FileImage(
+                                                  File(photos[index].path),
+                                                ),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       SizedBox(height: 10.0),
-                      SingleChildScrollView(
+                      if (selectedPhoto == -1) SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
                             LiamNavBar(
                                 child: TextButton(
                                   onPressed: () async {
-                                    if (flash) {
-                                      setState(() {
-                                        flash = !flash;
-                                        _controller.setFlashMode(FlashMode.off);
-                                      });
-                                    } else {
-                                      setState(() {
-                                        flash = !flash;
-                                        _controller
-                                            .setFlashMode(FlashMode.torch);
-                                      });
+                                    if (selectedPhoto == -1) {
+                                      if (flash) {
+                                        setState(() {
+                                          flash = !flash;
+                                          _controller.setFlashMode(
+                                              FlashMode.off);
+                                        });
+                                      } else {
+                                        setState(() {
+                                          flash = !flash;
+                                          _controller
+                                              .setFlashMode(FlashMode.torch);
+                                        });
+                                      }
                                     }
                                   },
                                   child: Icon(CupertinoIcons.light_max),
@@ -219,17 +297,19 @@ class _MyMagnifierState extends State<MyMagnifier> {
                             LiamNavBar(
                                 child: TextButton(
                                   onPressed: () async {
-                                    setState(() {
-                                      _isSwitchingCamera = true;
-                                    });
-                                    if (_controller.description == back_cam) {
-                                      _controller.setDescription(front_cam);
-                                    } else {
-                                      _controller.setDescription(back_cam);
+                                    if (selectedPhoto == -1) {
+                                      setState(() {
+                                        _isSwitchingCamera = true;
+                                      });
+                                      if (_controller.description == back_cam) {
+                                        _controller.setDescription(front_cam);
+                                      } else {
+                                        _controller.setDescription(back_cam);
+                                      }
+                                      setState(() {
+                                        _isSwitchingCamera = false;
+                                      });
                                     }
-                                    setState(() {
-                                      _isSwitchingCamera = false;
-                                    });
                                   },
                                   child: Icon(CupertinoIcons.switch_camera),
                                 ),
@@ -241,11 +321,13 @@ class _MyMagnifierState extends State<MyMagnifier> {
                             LiamNavBar(
                                 child: TextButton(
                                   onPressed: () async {
-                                    XFile photo =
-                                        await _controller.takePicture();
-                                    setState(() {
-                                      photos.add(photo);
-                                    });
+                                    if (selectedPhoto == -1) {
+                                      XFile photo =
+                                      await _controller.takePicture();
+                                      setState(() {
+                                        photos.add(photo);
+                                      });
+                                    }
                                   },
                                   child:
                                       Icon(CupertinoIcons.photo_camera_solid),
@@ -255,6 +337,14 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                     : Colors.orangeAccent,
                                 width: 75,
                                 radius: 40.0),
+
+                          ],
+                        ),
+                      ),
+                      if (selectedPhoto != -1) SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
                             LiamNavBar(
                                 child: TextButton(
                                   onPressed: () {
@@ -291,80 +381,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                           ],
                         ),
                       ),
-                      if (photos.isNotEmpty) SizedBox(height: 10.0),
-                      if (photos.isNotEmpty)
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 7, bottom: 30),
-                                child: Container(
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: photos.length,
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (selectedPhoto != index) {
-                                            setState(() {
-                                              selectedPhoto = index;
-                                              _controller
-                                                  .setFlashMode(FlashMode.off);
-                                            });
-                                          } else if (selectedPhoto == index) {
-                                            setState(() {
-                                              selectedPhoto = -1;
-                                            });
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(2),
-                                          child: Container(
-                                            decoration: (selectedPhoto == index)
-                                                ? BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    border:
-                                                        Border.fromBorderSide(
-                                                            BorderSide(
-                                                                color: Colors
-                                                                    .white,
-                                                                width: 2.0)))
-                                                : null,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: Image(
-                                                height: 100,
-                                                width: 100,
-                                                opacity:
-                                                    const AlwaysStoppedAnimation(
-                                                        07),
-                                                image: FileImage(
-                                                  File(photos[index].path),
-                                                ),
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      SizedBox(height: 20.0),// Padding between rows
                     ],
                   ),
                 ),
