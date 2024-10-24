@@ -1,5 +1,6 @@
 //file uses flutter spinkit to make a loading animation for when we need to fetch data
 
+import 'package:clarity/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -9,10 +10,14 @@ class Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.brown[100],
-      child: const Center(
+      decoration: BoxDecoration(
+        color: secondaryColor,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: lighterTertiaryColor),
+    ),
+      child: Center(
         child: SpinKitWaveSpinner(
-          color: Colors.brown,
+          color: darkerSecondaryColor,
           size: 50.0,
         ),
       ),

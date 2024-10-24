@@ -1,3 +1,4 @@
+import 'package:clarity/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -25,8 +26,8 @@ class _AIQuestionsState extends State<AIQuestions> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
   String result = '';
-  late var result1;
-  late var result2;
+  String result1 = '';
+  String result2 = '';
   List<bool> isSelected = [true, false];
 
   Future<String> processImageForAPI(File image) async {
@@ -119,78 +120,115 @@ class _AIQuestionsState extends State<AIQuestions> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.brown.shade100,
+      backgroundColor: lighterTertiaryColor,
       appBar: AppBar(
-        title: const Text("AIQuestions Page"),
-        backgroundColor: Colors.brown.shade900,
+        title: Text(
+          'AI Questions'.toUpperCase(),
+          style: TextStyle(
+              color: lighterTertiaryColor,
+              fontWeight: FontWeight.w800,
+              fontSize: 24),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: oppositeTertiaryColor,
+        leading: TextButton(
+          child: Icon(
+            Icons.arrow_back_ios,
+            color: tertiaryColor,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "Enter a prompt and select an image",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _textControl,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter your question about the image...',
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: GestureDetector(
+        onTap: (){
+          FocusScope.of(context).unfocus();
+
+        },
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () => _getImage(ImageSource.gallery),
-                  icon: const Icon(Icons.image),
-                  label: const Text('Select Image'),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: darkerSecondaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: lighterTertiaryColor),
+                  ),
+                  child:                 Text(
+                    "QUESTION PROMPT:".toUpperCase(),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: lighterTertiaryColor),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: _image == null || _textControl.text.isEmpty
-                      ? null
-                      : () => analyzeSentiment(_textControl.text, _image!.path, _image!),
-                  icon: const Icon(Icons.send),
-                  label: const Text('Analyze'),
+
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _textControl,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter your question about the image...',
+                  ),
+                  minLines: 5,
+                  maxLines: 10,
                 ),
-              ],
-            ),
-            SizedBox(height: 20,),
-            const SizedBox(height: 16),
-            if (_image != null) ...[
-              Image.file(
-                _image!,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (_isLoading)
-              const Center(
-                child: Column(
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Loading(),
-                    SizedBox(height: 8),
-                    Text('Analyzing image...'),
+                    ElevatedButton.icon(
+
+                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(lighterTertiaryColor), elevation: MaterialStateProperty.all<double>(7)),
+                      onPressed: () => _getImage(ImageSource.gallery),
+                      icon: Icon(Icons.image, color: oppositeTertiaryColor,),
+                      label: Text('Select Image'.toUpperCase(), style: TextStyle(color: oppositeTertiaryColor),),
+                    ),
+                    ElevatedButton.icon(
+                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(darkerSecondaryColor), elevation: MaterialStateProperty.all<double>(7)),
+                      onPressed: _image == null || _textControl.text.isEmpty
+                          ? null
+                          : () => analyzeSentiment(_textControl.text, _image!.path, _image!),
+                      icon: Icon(Icons.send, color: lighterTertiaryColor,),
+                      label: Text('Analyze'.toUpperCase(), style: TextStyle(color: lighterTertiaryColor),),
+                    ),
                   ],
                 ),
-              )
-            else if (result.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.brown.shade200),
-                ),
-                child: Text(result),
-              ),
-          ],
+                SizedBox(height: 20,),
+                const SizedBox(height: 16),
+                if (_image != null) ...[
+                  Image.file(
+                    _image!,
+                    height: 250,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (_isLoading)
+                  const Center(
+                    child: Column(
+                      children: [
+                        Loading(),
+                        SizedBox(height: 8),
+                        Text('Analyzing image...'),
+                      ],
+                    ),
+                  )
+                else if (result1.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: darkerSecondaryColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: lighterTertiaryColor),
+                    ),
+                    child: Text(result1.toUpperCase(),style:  TextStyle(fontSize: 24, color: lighterTertiaryColor, fontWeight: FontWeight.w700), textAlign: TextAlign.center,),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

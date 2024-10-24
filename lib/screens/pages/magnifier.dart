@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:app_settings/app_settings.dart';
 import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
+import 'package:clarity/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -68,9 +69,23 @@ class _MyMagnifierState extends State<MyMagnifier> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text("Magnifier Page"),
-        backgroundColor: Colors.brown.shade900.withOpacity(0.7),
+        title: Text(
+          'Magnifier'.toUpperCase(),
+          style: TextStyle(
+              color: lighterTertiaryColor,
+              fontWeight: FontWeight.w800,
+              fontSize: 24),
+        ),
+        centerTitle: true,
         elevation: 0,
+        backgroundColor: oppositeTertiaryColor.withOpacity(0.7),
+        leading: TextButton(
+          child: Icon(
+            Icons.arrow_back_ios,
+            color: tertiaryColor,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Stack(
         children: [
@@ -175,9 +190,9 @@ class _MyMagnifierState extends State<MyMagnifier> {
                         child: Slider(
                           value: _zoomLevel,
                           divisions: 9,
-                          secondaryActiveColor: Colors.brown,
-                          inactiveColor: Colors.blue.shade200,
-                          activeColor: Colors.blue.shade900,
+                          secondaryActiveColor: tertiaryColor,
+                          inactiveColor:darkerPrimaryColor,
+                          activeColor: darkerSecondaryColor,
                           min: 1.0,
                           max: 10.0,
                           onChanged: (value) {
@@ -187,7 +202,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                             });
                           },
                         ),
-                        bgcolor: Colors.orangeAccent,
+                        bgcolor: lighterTertiaryColor,
                       ),
                       if (photos.isNotEmpty) SizedBox(height: 10.0),
                       if (photos.isNotEmpty)
@@ -291,7 +306,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                 ),
                                 bgcolor: (selectedPhoto != -1)
                                     ? Colors.grey
-                                    : Colors.orangeAccent,
+                                    : lighterTertiaryColor,
                                 width: 75,
                                 radius: 40.0),
                             LiamNavBar(
@@ -315,7 +330,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                 ),
                                 bgcolor: (selectedPhoto != -1)
                                     ? Colors.grey
-                                    : Colors.orangeAccent,
+                                    : lighterTertiaryColor,
                                 width: 75,
                                 radius: 40.0),
                             LiamNavBar(
@@ -334,7 +349,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                 ),
                                 bgcolor: (selectedPhoto != -1)
                                     ? Colors.grey
-                                    : Colors.orangeAccent,
+                                    : lighterTertiaryColor,
                                 width: 75,
                                 radius: 40.0),
 
@@ -360,7 +375,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                 ),
                                 bgcolor: (selectedPhoto == -1)
                                     ? Colors.grey
-                                    : Colors.orangeAccent,
+                                    : lighterTertiaryColor,
                                 width: 75,
                                 radius: 40.0),
                             LiamNavBar(
@@ -375,7 +390,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                 ),
                                 bgcolor: (selectedPhoto == -1)
                                     ? Colors.grey
-                                    : Colors.orangeAccent,
+                                    : lighterTertiaryColor,
                                 width: 75,
                                 radius: 40.0),
                           ],

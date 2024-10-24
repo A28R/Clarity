@@ -1,5 +1,7 @@
+import 'package:clarity/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatelessWidget {
 
@@ -8,27 +10,27 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.cyan,
+      color: tertiaryColor,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          const SizedBox(height: 100,),
           const Text(
             "CLARITY",
             style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 72.0,
+                letterSpacing: -3.0),
+          ),
+         Text(
+            "Swipe To Start".toUpperCase(),
+            style: const TextStyle(
                 fontWeight: FontWeight.w500,
-                fontSize: 45.0,
-                letterSpacing: 1.0),
+                fontSize: 38.0,
+                ),
           ),
-          const Text(
-            "SWIPE TO START",
-            style: TextStyle(
-                fontWeight: FontWeight.w400,
-                fontSize: 35.0,
-                letterSpacing: 1.0),
-          ),
-          const SizedBox(height: 50.0),
-
+          Image.asset('assets/claritydemo2.png', height: 330,),
           //this is the cool part, contains blocks
           Row(
             children: [
@@ -38,18 +40,21 @@ class HomePage extends StatelessWidget {
               //settings block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Navigator.pushNamed(context,"/settings"),
+                  onTap: () {
+                    Navigator.pushNamed(context,"/settings");
+                    HapticFeedback.mediumImpact();
+                  },
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
                       decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: tertiaryColor,
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [BoxShadow(color: Colors.black.withAlpha(20),
-                            blurRadius: 20,
-                            spreadRadius: 10),],
-                        border: const Border.fromBorderSide(
-                            BorderSide(color: Colors.teal,width: 4.0),
+                        boxShadow: [BoxShadow(color: primaryColor,
+                            blurRadius: 30,
+                            spreadRadius: 1),],
+                        border: Border.fromBorderSide(
+                            BorderSide(color: oppositeTertiaryColor,width: 2.0),
                         )
 
                       ),
@@ -59,12 +64,12 @@ class HomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           //Mid page icon
-                          Icon(CupertinoIcons.settings),
+                          Icon(CupertinoIcons.settings, size: 40,),
                           //text below icon
-                          Text(
-                            "Settings",
-                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
-                          ),
+                          // Text(
+                          //   "Settings".toUpperCase(),
+                          //   style: TextStyle(fontSize: 13.0,fontWeight: FontWeight.bold),
+                          // ),
                         ],
                       ),
                     ),
@@ -75,18 +80,21 @@ class HomePage extends StatelessWidget {
               //demos block with gesturedetector to nav
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Navigator.pushNamed(context,"/demos"),
+                  onTap: () {
+                    Navigator.pushNamed(context,"/demos");
+                    HapticFeedback.mediumImpact();
+                  },
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: tertiaryColor,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: Colors.black.withAlpha(20),
-                              blurRadius: 20,
-                              spreadRadius: 10),],
-                          border: const Border.fromBorderSide(
-                            BorderSide(color: Colors.teal,width: 4.0),
+                          boxShadow: [BoxShadow(color: primaryColor,
+                              blurRadius: 30,
+                              spreadRadius: 1),],
+                          border: Border.fromBorderSide(
+                            BorderSide(color: oppositeTertiaryColor,width: 2.0),
                           )
 
                       ),
@@ -96,33 +104,37 @@ class HomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           //Mid page icon
-                          Icon(CupertinoIcons.eyeglasses),
+                          Icon(CupertinoIcons.eyeglasses, size: 40,),
                           //text below icon
-                          Text(
-                            "Demos",
-                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
-                          ),
+                          // Text(
+                          //   "Demos".toUpperCase(),
+                          //   style: TextStyle(fontSize: 13.0,fontWeight: FontWeight.bold),
+                          // ),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: 30.0,),
+              
+              const SizedBox(width: 30.0,),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Navigator.pushNamed(context,"/info"),
+                  onTap: () {
+                    Navigator.pushNamed(context,"/info");
+                    HapticFeedback.mediumImpact();
+                  },
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
                       decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: tertiaryColor,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: Colors.black.withAlpha(20),
-                              blurRadius: 20,
-                              spreadRadius: 10),],
-                          border: const Border.fromBorderSide(
-                            BorderSide(color: Colors.teal,width: 4.0),
+                          boxShadow: [BoxShadow(color: primaryColor,
+                              blurRadius: 30,
+                              spreadRadius: 1),],
+                          border: Border.fromBorderSide(
+                            BorderSide(color: oppositeTertiaryColor,width: 2.0),
                           )
 
                       ),
@@ -132,19 +144,19 @@ class HomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           //Mid page icon
-                          Icon(CupertinoIcons.info_circle),
+                          Icon(CupertinoIcons.info_circle, size: 40,),
                           //text below icon
-                          Text(
-                            "Info",
-                            style: TextStyle(fontSize: 16.0,fontWeight: FontWeight.bold),
-                          ),
+                          // Text(
+                          //   "Info".toUpperCase(),
+                          //   style: TextStyle(fontSize: 13.0,fontWeight: FontWeight.bold),
+                          // ),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: 40.0,),
+              const SizedBox(width: 40.0,),
             ],
           ),
         ],
