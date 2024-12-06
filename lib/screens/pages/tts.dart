@@ -47,7 +47,8 @@ class _TextToSpeechState extends State<TextToSpeech> {
       await Future.delayed(const Duration(seconds: 2));
       setState(() {
         _image = File(newimage!.path);
-        text.text = "Many people have some type of visual problem at some point in their lives. Some can no longer see objects far away. Others have problems reading small print. These types of conditions are often easily treated with eyeglasses or contact lenses.";
+        text.text =
+            "Many people have some type of visual problem at some point in their lives. Some can no longer see objects far away. Others have problems reading small print. These types of conditions are often easily treated with eyeglasses or contact lenses.";
       });
     } on PlatformException catch (e) {
       print(e.code);
@@ -185,7 +186,7 @@ class _TextToSpeechState extends State<TextToSpeech> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: tertiaryColor,
+        backgroundColor: lighterTertiaryColor,
         appBar: AppBar(
           title: Text(
             'Text To Speech'.toUpperCase(),
@@ -206,9 +207,8 @@ class _TextToSpeechState extends State<TextToSpeech> {
           ),
         ),
         body: GestureDetector(
-          onTap: (){
+          onTap: () {
             FocusScope.of(context).unfocus();
-
           },
           child: SingleChildScrollView(
             child: Column(
@@ -227,166 +227,181 @@ class _TextToSpeechState extends State<TextToSpeech> {
                               child: Image.file(_image)),
                         )
                       : Container(
-                        width: 360,
+                          width: 360,
                           height: 360,
-                      decoration: BoxDecoration(
-                        color: darkerSecondaryColor.withAlpha(75),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.fromBorderSide(
-                          BorderSide(color: oppositeTertiaryColor, width: 4.0),
-                        ),
-                      ),
-                          child: Center(
-                            child: Text(
-                            'No Image selected'.toUpperCase(),
-                            style: TextStyle(
-                              color: oppositeTertiaryColor,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
+                          decoration: BoxDecoration(
+                            color: secondaryColor.withOpacity(0.075),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.fromBorderSide(
+                              BorderSide(
+                                  color: oppositeTertiaryColor, width: 4),
                             ),
-                                                  ),
-                          )),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.photo_camera_back_outlined,
+                              size: 200,
+                            ),
+                            // Text(
+                            //   'No Image selected'.toUpperCase(),
+                            //   style: TextStyle(
+                            //     color: oppositeTertiaryColor,
+                            //     fontSize: 20,
+                            //     fontWeight: FontWeight.w700,
+                            //   ),
+                            // ),
+                          ),
+                        ),
                 ),
                 CupertinoButton(
                   onPressed: showOptions,
                   child: Container(
-                    width: 200,
-                    height: 40,
+                    width: 340,
+                    height: 60,
                     decoration: BoxDecoration(
-                      color: lighterTertiaryColor,
+                      color: darkerSecondaryColor,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.fromBorderSide(
-                        BorderSide(color: oppositeTertiaryColor, width: 3.0),
+                        BorderSide(color: darkerSecondaryColor, width: 3.0),
                       ),
                     ),
                     child: Center(
                       child: Text(
                         "SELECT IMAGE",
                         style: TextStyle(
-                            color: oppositeTertiaryColor,
-                            fontSize: 14,
+                            color: lighterTertiaryColor,
+                            fontSize: 18,
                             fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        TextField(
-                          minLines: 5,
-                          maxLength: null,
-                          maxLines: null,
-                          controller: text,
-
-                          decoration: InputDecoration(
-                            hintText: 'Edit the recognized text to correct for any errors. Press the play button below to convert to speech.',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        DropdownButton<String>(
-                          value: language,
-                          onChanged: (newLang) async {
-                            setState(() {
-                              language = newLang!;
-                            });
-
-                            switch (language) {
-                              case 'English':
-                                setState(() {
-                                  selectedLanguage = 'en-US';
-                                });
-                                break;
-                              case 'Spanish':
-                                setState(() {
-                                  selectedLanguage = 'es-ES';
-                                });
-                                break;
-                              case 'French':
-                                setState(() {
-                                  selectedLanguage = 'fr-FR';
-                                });
-                                break;
-                            }
-                          },
-                          items: ['English', 'Spanish', 'French'].map((language) {
-                            return DropdownMenuItem<String>(
-                              value: language,
-                              child: Text(language),
-                            );
-                          }).toList(),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Slider(
-                                value: volume,
-                                min: 0.0,
-                                max: 0.8,
-                                thumbColor: primaryColor,
-                                activeColor: secondaryColor,
-                                onChanged: (newRate) {
-                                  setState(() {
-                                    volume = newRate;
-                                  });
-                                },
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Card(
+                    color: lighterTertiaryColor,
+                    surfaceTintColor: primaryColor.withOpacity(0.9),
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      side: BorderSide(width: 1, color: lighterTertiaryColor),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          TextField(
+                            minLines: 5,
+                            maxLength: null,
+                            maxLines: null,
+                            controller: text,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: lighterTertiaryColor,
+                              hintText:
+                                  'Edit the recognized text to correct for any errors. Press the play button below to convert to speech.',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: oppositeTertiaryColor, width: 2),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            const Icon(CupertinoIcons.speedometer, size:30)
-                          ],
-
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            buildButton(Icons.play_arrow, 'PLAY', Colors.green, () async {
-                              if (isPlaying) {
-                                await speech.pause();
-                              } else {
-                                // await speech.setPitch(4);
-                                await speech.setSpeechRate(volume);
-                                await speech.setLanguage(selectedLanguage);
-                                await speech.speak(text.text);
-                              }
+                          ),
+                          const SizedBox(height: 20),
+                          DropdownButton<String>(
+                            value: language,
+                            onChanged: (newLang) async {
                               setState(() {
-                                isPlaying = !isPlaying;
+                                language = newLang!;
                               });
-                              speech.setCompletionHandler(() {
+
+                              switch (language) {
+                                case 'English':
+                                  setState(() {
+                                    selectedLanguage = 'en-US';
+                                  });
+                                  break;
+                                case 'Spanish':
+                                  setState(() {
+                                    selectedLanguage = 'es-ES';
+                                  });
+                                  break;
+                                case 'French':
+                                  setState(() {
+                                    selectedLanguage = 'fr-FR';
+                                  });
+                                  break;
+                              }
+                            },
+                            items: ['English', 'Spanish', 'French']
+                                .map((language) {
+                              return DropdownMenuItem<String>(
+                                value: language,
+                                child: Text(language),
+                              );
+                            }).toList(),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Slider(
+                                  value: volume,
+                                  min: 0.0,
+                                  max: 0.8,
+                                  thumbColor: primaryColor,
+                                  activeColor: secondaryColor,
+                                  onChanged: (newRate) {
+                                    setState(() {
+                                      volume = newRate;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const Icon(CupertinoIcons.speedometer, size: 30)
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              buildButton(
+                                  Icons.play_arrow, 'PLAY', Colors.green,
+                                  () async {
+                                if (isPlaying) {
+                                  await speech.pause();
+                                } else {
+                                  // await speech.setPitch(4);
+                                  await speech.setSpeechRate(volume);
+                                  await speech.setLanguage(selectedLanguage);
+                                  await speech.speak(text.text);
+                                }
                                 setState(() {
                                   isPlaying = !isPlaying;
                                 });
-                              });
-                            }, isPlaying),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            buildButton(Icons.stop, 'STOP', Colors.red, () async {
-                              speech.stop();
-                              setState(() {
-                                isPlaying = false;
-                              });
-                            }, false),
-                          ],
-                        ),
-                      ],
+                                speech.setCompletionHandler(() {
+                                  setState(() {
+                                    isPlaying = !isPlaying;
+                                  });
+                                });
+                              }, isPlaying),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              buildButton(Icons.stop, 'STOP', Colors.red,
+                                  () async {
+                                speech.stop();
+                                setState(() {
+                                  isPlaying = false;
+                                });
+                              }, false),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
-
               ],
             ),
           ),

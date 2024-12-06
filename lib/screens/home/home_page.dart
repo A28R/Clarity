@@ -10,7 +10,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: tertiaryColor,
+      color: lighterTertiaryColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,7 +104,7 @@ class HomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           //Mid page icon
-                          Icon(CupertinoIcons.eyeglasses, size: 40,),
+                          Icon(Icons.help_outline, size: 40,),
                           //text below icon
                           // Text(
                           //   "Demos".toUpperCase(),
