@@ -142,6 +142,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                             activeColor: darkerSecondaryColor,
                             min: 1.0,
                             max: 10.0,
+                            allowedInteraction: SliderInteraction.slideOnly,
                             onChanged: (value) {
                               setState(() {
                                 _zoomLevel = value;
