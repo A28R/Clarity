@@ -255,9 +255,9 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                       },
                                       child: Icon(CupertinoIcons.light_max),
                                     ),
-                                    bgcolor: (selectedPhoto != -1)
-                                        ? Colors.grey
-                                        : lighterTertiaryColor,
+                                    bgcolor: (flash)
+                                        ? Colors.grey.shade600
+                                        : Colors.grey.shade100,
                                     width: 75,
                                     radius: 40.0),
                                 LiamNavBar(
@@ -283,9 +283,9 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                       },
                                       child: Icon(CupertinoIcons.switch_camera),
                                     ),
-                                    bgcolor: (selectedPhoto != -1)
-                                        ? Colors.grey
-                                        : lighterTertiaryColor,
+                                    bgcolor: (_controller.description==back_cam)
+                                        ? Colors.grey.shade600
+                                        : Colors.grey.shade100,
                                     width: 75,
                                     radius: 40.0),
                                 LiamNavBar(
@@ -303,9 +303,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                       child: Icon(
                                           CupertinoIcons.photo_camera_solid),
                                     ),
-                                    bgcolor: (selectedPhoto != -1)
-                                        ? Colors.grey
-                                        : lighterTertiaryColor,
+                                    bgcolor: Colors.grey.shade600,
                                     width: 75,
                                     radius: 40.0),
                               ],
@@ -331,9 +329,7 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                       },
                                       child: Icon(CupertinoIcons.share),
                                     ),
-                                    bgcolor: (selectedPhoto == -1)
-                                        ? Colors.grey
-                                        : lighterTertiaryColor,
+                                    bgcolor: Colors.grey.shade600,
                                     width: 75,
                                     radius: 40.0),
                                 LiamNavBar(
@@ -347,15 +343,12 @@ class _MyMagnifierState extends State<MyMagnifier> {
                                       },
                                       child: Icon(CupertinoIcons.delete),
                                     ),
-                                    bgcolor: (selectedPhoto == -1)
-                                        ? Colors.grey
-                                        : lighterTertiaryColor,
+                                    bgcolor: Colors.grey.shade600,
                                     width: 75,
                                     radius: 40.0),
                               ],
                             ),
-                          ),
-                        SizedBox(height: 20.0), // Padding between rows
+                          ), // Padding between rows
                       ],
                     ),
                   ),

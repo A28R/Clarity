@@ -203,7 +203,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.light_max),
       ),
-      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      bgcolor: (flash) ? Colors.grey.shade600
+        : Colors.grey.shade100,
       width: 75,
       radius: 40.0,
     );
@@ -228,7 +229,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.switch_camera),
       ),
-      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      bgcolor: (_controller.description == back_cam) ? Colors.grey.shade600
+          : Colors.grey.shade100,
       width: 75,
       radius: 40.0,
     );
@@ -268,7 +270,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.photo_camera_solid),
       ),
-      bgcolor: (selectedPhoto != -1) ? Colors.grey : lighterTertiaryColor,
+      bgcolor: Colors.grey.shade600,
       width: 75,
       radius: 40.0,
     );
@@ -289,7 +291,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.share),
       ),
-      bgcolor: (selectedPhoto == -1) ? Colors.grey : lighterTertiaryColor,
+      bgcolor: Colors.grey.shade600,
       width: 75,
       radius: 40.0,
     );
@@ -307,7 +309,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.delete),
       ),
-      bgcolor: (selectedPhoto == -1) ? Colors.grey : lighterTertiaryColor,
+      bgcolor: Colors.grey.shade600,
       width: 75,
       radius: 40.0,
     );
