@@ -10,7 +10,7 @@ Future<void> myShowDialog(BuildContext context) async {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        backgroundColor: tertiaryColor,
+        backgroundColor: lighterTertiaryColor,
         title:  Text(
           'Understanding Color Vision'.toUpperCase(),
           style: TextStyle(
