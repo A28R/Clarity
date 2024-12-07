@@ -11,7 +11,7 @@ class Loading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: secondaryColor,
+        color: lighterPrimaryColor,
       borderRadius: BorderRadius.circular(8),
       border: Border.all(color: lighterTertiaryColor),
     ),

@@ -1,8 +1,19 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:image/image.dart' as img;
-import '../color_filter.dart';
+import 'color_filter.dart';
 import 'dart:math';
+
+enum ColorblindnessType {
+  normal,
+  protanopia,
+  deuteranopia,
+  tritanopia,
+  protanomaly,
+  deuteranomaly,
+  tritanomaly,
+  achromatopsia
+}
 
 // Protanomaly correction (mild red-green color blindness)
 img.Image correctProtanomaly(img.Image image) {

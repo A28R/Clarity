@@ -1,28 +1,18 @@
 import 'dart:io';
-import 'dart:ui';
+import 'package:clarity/screens/pages/magnifier_stuff/permission_screen.dart';
 import 'package:clarity/themes/theme.dart';
-import 'package:flutter/foundation.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../shared/loading.dart';
-import 'color_filter/color_filter_funcs.dart';
-
-enum ColorblindnessType {
-  normal,
-  protanopia,
-  deuteranopia,
-  tritanopia,
-  protanomaly,
-  deuteranomaly,
-  tritanomaly,
-  achromatopsia
-}
+import 'package:clarity/screens/pages/color_filter/info_dialog.dart';
+import '../../../shared/loading.dart';
+import '../magnifier_stuff/cam_widget.dart';
+import 'color_filter_funcs.dart';
 
 class MyColorFilter extends StatefulWidget {
   final dynamic cameras;
@@ -39,6 +29,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
   late CameraDescription front_cam;
   late CameraDescription back_cam;
   ColorblindnessType _currentFilter = ColorblindnessType.normal;
+  bool _isProcessingPhoto = false;
 
   bool flash = false;
   bool _isSwitchingCamera = false;
@@ -47,6 +38,24 @@ class _MyColorFilterState extends State<MyColorFilter> {
   List<XFile> photos = [];
   late XFile photo;
   int selectedPhoto = -1;
+
+  dynamic _getChildSize() {
+    if (photos.isEmpty)
+      return [0.28,[0.28]];
+    if (photos.isNotEmpty && selectedPhoto == -1)
+      return [0.45,[0.28,0.45]];
+    if (photos.isNotEmpty && selectedPhoto != -1)
+      return [0.34,[0.34]];
+  }
+
+  dynamic _getMinSize() {
+    if (photos.isEmpty)
+      return 0.28;
+    if (photos.isNotEmpty && selectedPhoto == -1)
+      return 0.28;
+    if (photos.isNotEmpty && selectedPhoto != -1)
+      return 0.34;
+  }
 
   @override
   void initState() {
@@ -62,172 +71,6 @@ class _MyColorFilterState extends State<MyColorFilter> {
     back_cam = widget.cameras.first;
     front_cam = widget.cameras[1];
     _initializeCamera(back_cam);
-  }
-
-
-  Future<void> _showDialog(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text(
-            'Understanding Color Vision',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
-          ),
-          content: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoSection(
-                    'Types of Color Vision Deficiency:',
-                    'Protan (Red-Weak): Difficulty distinguishing between reds and greens, with reds appearing darker.\n\n'
-                        'Deutan (Green-Weak): Similar to protan, but greens appear darker instead of reds.\n\n'
-                        'Tritan (Blue-Yellow): Rare condition affecting blue and yellow perception.\n\n'
-                        'Achromats: Complete color blindness, seeing only in shades of gray.',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoSection(
-                    'Important Note:',
-                    'This test is designed for educational purposes and preliminary screening only. For an accurate diagnosis, please consult an eye care professional.',
-                    isWarning: true,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4299E1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Take a Test',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(
-                    Icons.open_in_new,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-              onPressed: () => _launchURL(),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: lighterTertiaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Learn More',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(
-                    Icons.open_in_new,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-              onPressed: () => _launchURL1(),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: const Text(
-                'Exit',
-                style: TextStyle(
-                  color: Color(0xFF4A5568),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-
-          ],
-          actionsPadding: const EdgeInsets.all(16),
-        );
-      },
-    );
-  }
-
-  Widget _buildInfoSection(String title, String content, {bool isWarning = false}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isWarning ? const Color(0xFFFFF5F5) : const Color(0xFFF7FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isWarning ? const Color(0xFFFED7D7) : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isWarning ? const Color(0xFFE53E3E) : const Color(0xFF2D3748),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: TextStyle(
-              fontSize: 16,
-              color: isWarning ? const Color(0xFF742A2A) : const Color(0xFF4A5568),
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _launchURL1() async {
-    const url = 'https://www.aoa.org/healthy-eyes/eye-and-vision-conditions/color-vision-deficiency';
-    if (await canLaunch(url)) {
-      await launch(url);
-    }
   }
 
   Widget buildColorblindnessSelector() {
@@ -291,6 +134,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
       ),
     );
   }
+
   Widget buildPhotoSelector() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -343,6 +187,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
     return LiamNavBar(
       child: TextButton(
         onPressed: () async {
+          HapticFeedback.mediumImpact();
           if (flash) {
             setState(() {
               flash = !flash;
@@ -354,6 +199,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
               _controller.setFlashMode(FlashMode.torch);
             });
           }
+
         },
         child: const Icon(CupertinoIcons.light_max),
       ),
@@ -378,6 +224,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
           setState(() {
             _isSwitchingCamera = false;
           });
+          HapticFeedback.mediumImpact();
         },
         child: const Icon(CupertinoIcons.switch_camera),
       ),
@@ -390,13 +237,34 @@ class _MyColorFilterState extends State<MyColorFilter> {
   Widget _buildTakePictureButton() {
     return LiamNavBar(
       child: TextButton(
-        onPressed: () async {
-          XFile photo = await _controller.takePicture();
-          photo = await applyColorblindnessFilter(photo, _currentFilter);
-          setState(() {
-            photos.add(photo);
-            selectedPhoto = photos.indexOf(photo);
+        onPressed: _isProcessingPhoto ? null : () async {
+          setState(()
+          {
+            _isProcessingPhoto = true;
           });
+          HapticFeedback.mediumImpact();
+          try {
+            XFile photo = await _controller.takePicture();
+            photo = await applyColorblindnessFilter(photo, _currentFilter);
+            setState(() {
+              photos.add(photo);
+              selectedPhoto = photos.indexOf(photo);
+              _isProcessingPhoto = false;
+            });
+          } catch (e) {
+            setState(() {
+              _isProcessingPhoto = false;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to process photo'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+
         },
         child: const Icon(CupertinoIcons.photo_camera_solid),
       ),
@@ -410,6 +278,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
     return LiamNavBar(
       child: TextButton(
         onPressed: () {
+          HapticFeedback.mediumImpact();
           if (selectedPhoto != -1) {
             Share.shareXFiles(
               [photos.elementAt(selectedPhoto)],
@@ -430,6 +299,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
     return LiamNavBar(
       child: CupertinoButton(
         onPressed: () {
+          HapticFeedback.mediumImpact();
           setState(() {
             photos.removeAt(selectedPhoto);
             selectedPhoto = -1;
@@ -465,13 +335,6 @@ class _MyColorFilterState extends State<MyColorFilter> {
     }
   }
 
-  _launchURL() async {
-    final Uri url = Uri.parse("https://enchroma.com/pages/color-blindness-test");
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     _checkCameraPermission();
@@ -493,92 +356,50 @@ class _MyColorFilterState extends State<MyColorFilter> {
             Icons.arrow_back_ios,
             color: tertiaryColor,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pop();
+            HapticFeedback.mediumImpact();
+          },
         ),
+        actions: [
+          TextButton(
+            child: Icon(
+              Icons.info_outlined,
+              color: tertiaryColor,
+            ),
+            onPressed: () { HapticFeedback.mediumImpact();myShowDialog(context);},
+          ),
+        ],
       ),
       body: Stack(
         children: [
           Stack(children: [
             if (!_hasCameraPermission)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Your Camera is Disabled. Open Settings to fix this."),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.red)),
-                      child: const Text(
-                        'Open Settings',
-                      ),
-                      onPressed: () => AppSettings.openAppSettings(),
-                    ),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(Colors.red)),
-                      child: const Text(
-                        'Reload',
-                      ),
-                      onPressed: () => _hasCameraPermission,
-                    ),
-                  ],
-                ),
+              PermissionScreen(
+                  checkCameraPermission: _checkCameraPermission,
+                  context:context
               ),
-            if (selectedPhoto == -1 && _hasCameraPermission)
-              FutureBuilder<void>(
-                future: _initializeCamFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      !_isSwitchingCamera) {
-                    return Stack(
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height,
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            child: SizedBox(
-                              width: 100,
-                              child: CameraPreview(_controller),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else {
-                    return const Loading();
-                  }
-                },
+            if (_hasCameraPermission)
+              CamWidget(
+                  context: context,
+                  controller: _controller,
+                  initializeCamFuture: _initializeCamFuture,
+                  isSwitchingCamera: _isSwitchingCamera,
+                  selectedPhoto: selectedPhoto,
+                  photos:photos
               ),
-            if (selectedPhoto != -1 && _hasCameraPermission)
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: 100,
-                    child: Image(
-                      opacity: const AlwaysStoppedAnimation(07),
-                      image: FileImage(
-                        File(photos[selectedPhoto].path),
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
+            if (_isProcessingPhoto)
+              Loading(),
           ]),
           if (_hasCameraPermission)
             DraggableScrollableSheet(
               controller: _dragController,
-              initialChildSize: 0.28,
-              minChildSize: 0.28,
-              maxChildSize: (photos.isNotEmpty) ? 0.45 : 0.28,
+              initialChildSize: _getMinSize(),
+              minChildSize: _getMinSize(),
+              maxChildSize: _getChildSize()[0],
               snap: true,
-              snapSizes: (photos.isNotEmpty) ? [0.28,0.45] : [0.28],
+              snapAnimationDuration: Duration(milliseconds: 300),
+              snapSizes: _getChildSize()[1],
               builder: (context, controller) {
                 return Container(
                   padding: const EdgeInsets.fromLTRB(6.0, 10.0, 6.0, 10.0),

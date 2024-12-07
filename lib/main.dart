@@ -1,11 +1,11 @@
 import 'package:clarity/screens/home/home.dart';
 import 'package:clarity/screens/pages/ai_questions.dart';
-import 'package:clarity/screens/pages/color_filter.dart';
+import 'package:clarity/screens/pages/color_filter/color_filter.dart';
 import 'package:clarity/screens/pages/demo.dart';
 import 'package:clarity/screens/pages/info.dart';
 import 'package:clarity/screens/pages/redirect.dart';
 import 'package:clarity/screens/pages/settings.dart';
-import 'package:clarity/screens/pages/magnifier.dart';
+import 'package:clarity/screens/pages/magnifier_stuff/magnifier.dart';
 import 'package:clarity/screens/pages/tts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
