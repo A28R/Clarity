@@ -35,3 +35,12 @@ Widget LiamNavBar({required Widget child, required Color bgcolor,
 String capitalize(String s) {
   return s.substring(0,1).toUpperCase()+s.substring(1).toLowerCase();
 }
+
+const textInputDecoration = InputDecoration(
+  fillColor: Colors.white,
+  filled: true,
+  enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.white, width: 2.0)),
+  focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.pink, width: 2.0)),
+);

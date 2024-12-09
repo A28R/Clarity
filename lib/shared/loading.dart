@@ -10,9 +10,9 @@ class Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: lighterPrimaryColor,
-      borderRadius: BorderRadius.circular(8),
       border: Border.all(color: lighterTertiaryColor),
     ),
       child: Center(

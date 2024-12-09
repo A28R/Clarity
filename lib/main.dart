@@ -1,15 +1,23 @@
+import 'package:clarity/firebase_options.dart';
 import 'package:clarity/screens/home/home.dart';
 import 'package:clarity/screens/pages/ai_questions.dart';
 import 'package:clarity/screens/pages/color_filter/color_filter.dart';
 import 'package:clarity/screens/pages/demo.dart';
 import 'package:clarity/screens/pages/info.dart';
 import 'package:clarity/screens/pages/redirect.dart';
-import 'package:clarity/screens/pages/settings.dart';
+import 'package:clarity/screens/pages/settings_stuff/settings.dart';
 import 'package:clarity/screens/pages/magnifier_stuff/magnifier.dart';
 import 'package:clarity/screens/pages/tts.dart';
+import 'package:clarity/services/database_fb.dart';
+import 'package:clarity/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+
+import 'models/data.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /*Imports Above ^
 All imports of the form 'clarity/screens/...' import classes from other project files
@@ -61,6 +69,12 @@ void main() async {
 
   //since main function has an async* marker, we need this to initialize WidgetsBinding
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter(); // Initialize Hive
+  Hive.registerAdapter(MyUserDataAdapter()); // Register the adapter
+
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform);
+  await Hive.openBox<MyUserData>('preferences'); // Open the box
 
   //fetching cameras for the app (will return zero if we have none)
   //also returns 0 if no cameras available
@@ -101,10 +115,10 @@ class MyApp extends StatelessWidget {
       //defining named routes -- since we dont have a ton, its easy
       routes: {
         '/': (context) => Home(
-            icons:icons,
-            labels:labels,
-            colors: colors,
-            descriptions:descriptions,
+          icons:icons,
+          labels:labels,
+          colors: colors,
+          descriptions:descriptions,
         ),
         '/settings': (context) => Settings(),
         '/demos': (context) => Demos(),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:clarity/screens/pages/magnifier_stuff/permission_screen.dart';
 import 'package:clarity/themes/theme.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:camera/camera.dart';
 import 'package:clarity/shared/constants.dart';
@@ -41,20 +42,26 @@ class _MyColorFilterState extends State<MyColorFilter> {
 
   dynamic _getChildSize() {
     if (photos.isEmpty)
-      return [0.28,[0.28]];
+      return [
+        0.28,
+        [0.28]
+      ];
     if (photos.isNotEmpty && selectedPhoto == -1)
-      return [0.45,[0.28,0.45]];
+      return [
+        0.45,
+        [0.28, 0.45]
+      ];
     if (photos.isNotEmpty && selectedPhoto != -1)
-      return [0.34,[0.34]];
+      return [
+        0.34,
+        [0.34]
+      ];
   }
 
   dynamic _getMinSize() {
-    if (photos.isEmpty)
-      return 0.28;
-    if (photos.isNotEmpty && selectedPhoto == -1)
-      return 0.28;
-    if (photos.isNotEmpty && selectedPhoto != -1)
-      return 0.34;
+    if (photos.isEmpty) return 0.28;
+    if (photos.isNotEmpty && selectedPhoto == -1) return 0.28;
+    if (photos.isNotEmpty && selectedPhoto != -1) return 0.34;
   }
 
   @override
@@ -125,7 +132,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
     );
   }
 
-  Widget buildActionButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget buildActionButton(
+      {required IconData icon, required VoidCallback onPressed}) {
     return SizedBox(
       width: 75,
       child: TextButton(
@@ -142,41 +150,92 @@ class _MyColorFilterState extends State<MyColorFilter> {
         padding: const EdgeInsets.only(left: 7, bottom: 30),
         child: SizedBox(
           height: 100,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: photos.length,
+          child: ListView(
             scrollDirection: Axis.horizontal,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedPhoto = (selectedPhoto != index) ? index : -1;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Container(
-                    decoration: (selectedPhoto == index)
-                        ? BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: const Border.fromBorderSide(
-                                BorderSide(color: Colors.white, width: 2.0)),
-                          )
-                        : null,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image(
-                        height: 100,
-                        width: 100,
-                        opacity: const AlwaysStoppedAnimation(0.7),
-                        image: FileImage(File(photos[index].path)),
-                        fit: BoxFit.cover,
+            physics: CarouselScrollPhysics(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+                      if (image != null) {
+                        setState(() {
+                          photos.add(image);
+                          selectedPhoto = photos.length - 1;
+                        });
+                      }
+                    },
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.photo_on_rectangle,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Import',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+              ...photos.map((photo) {
+                dynamic index = photos.indexOf(photo);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedPhoto = (selectedPhoto != index) ? index : -1;
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Container(
+                      decoration: (selectedPhoto == index)
+                          ? BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: const Border.fromBorderSide(
+                                  BorderSide(color: Colors.white, width: 2.0)),
+                            )
+                          : null,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image(
+                          height: 100,
+                          width: 100,
+                          opacity: const AlwaysStoppedAnimation(0.7),
+                          image: FileImage(File(photos[index].path)),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
           ),
         ),
       ),
@@ -199,12 +258,10 @@ class _MyColorFilterState extends State<MyColorFilter> {
               _controller.setFlashMode(FlashMode.torch);
             });
           }
-
         },
         child: const Icon(CupertinoIcons.light_max),
       ),
-      bgcolor: (flash) ? Colors.grey.shade600
-        : Colors.grey.shade100,
+      bgcolor: (flash) ? Colors.grey.shade600 : Colors.grey.shade100,
       width: 75,
       radius: 40.0,
     );
@@ -229,7 +286,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
         },
         child: const Icon(CupertinoIcons.switch_camera),
       ),
-      bgcolor: (_controller.description == back_cam) ? Colors.grey.shade600
+      bgcolor: (_controller.description == back_cam)
+          ? Colors.grey.shade600
           : Colors.grey.shade100,
       width: 75,
       radius: 40.0,
@@ -239,35 +297,36 @@ class _MyColorFilterState extends State<MyColorFilter> {
   Widget _buildTakePictureButton() {
     return LiamNavBar(
       child: TextButton(
-        onPressed: _isProcessingPhoto ? null : () async {
-          setState(()
-          {
-            _isProcessingPhoto = true;
-          });
-          HapticFeedback.mediumImpact();
-          try {
-            XFile photo = await _controller.takePicture();
-            photo = await applyColorblindnessFilter(photo, _currentFilter);
-            setState(() {
-              photos.add(photo);
-              selectedPhoto = photos.indexOf(photo);
-              _isProcessingPhoto = false;
-            });
-          } catch (e) {
-            setState(() {
-              _isProcessingPhoto = false;
-            });
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Failed to process photo'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            }
-          }
-
-        },
+        onPressed: _isProcessingPhoto
+            ? null
+            : () async {
+                setState(() {
+                  _isProcessingPhoto = true;
+                });
+                HapticFeedback.mediumImpact();
+                try {
+                  XFile photo = await _controller.takePicture();
+                  photo =
+                      await applyColorblindnessFilter(photo, _currentFilter);
+                  setState(() {
+                    photos.add(photo);
+                    selectedPhoto = photos.indexOf(photo);
+                    _isProcessingPhoto = false;
+                  });
+                } catch (e) {
+                  setState(() {
+                    _isProcessingPhoto = false;
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to process photo'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
+              },
         child: const Icon(CupertinoIcons.photo_camera_solid),
       ),
       bgcolor: Colors.grey.shade600,
@@ -369,7 +428,10 @@ class _MyColorFilterState extends State<MyColorFilter> {
               Icons.info_outlined,
               color: tertiaryColor,
             ),
-            onPressed: () { HapticFeedback.mediumImpact();myShowDialog(context);},
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              myShowDialog(context);
+            },
           ),
         ],
       ),
@@ -379,8 +441,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
             if (!_hasCameraPermission)
               PermissionScreen(
                   checkCameraPermission: _checkCameraPermission,
-                  context:context
-              ),
+                  context: context),
             if (_hasCameraPermission)
               CamWidget(
                   context: context,
@@ -388,10 +449,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
                   initializeCamFuture: _initializeCamFuture,
                   isSwitchingCamera: _isSwitchingCamera,
                   selectedPhoto: selectedPhoto,
-                  photos:photos
-              ),
-            if (_isProcessingPhoto)
-              Loading(),
+                  photos: photos),
+            if (_isProcessingPhoto) Loading(),
           ]),
           if (_hasCameraPermission)
             DraggableScrollableSheet(
@@ -415,23 +474,27 @@ class _MyColorFilterState extends State<MyColorFilter> {
                     controller: controller,
                     child: Column(
                       children: [
-                        if (selectedPhoto == -1) const Text(
-                          "COLORBLINDNESS MODE",
-                          style: TextStyle(
-                            letterSpacing: 1.0,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 23.0,
-                            color: Colors.white
+                        if (selectedPhoto == -1)
+                          const Text(
+                            "COLORBLINDNESS MODE",
+                            style: TextStyle(
+                                letterSpacing: 1.0,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 23.0,
+                                color: Colors.white),
                           ),
-                        ),
-                        if (selectedPhoto == -1) const SizedBox(height: 5.0,),
+                        if (selectedPhoto == -1)
+                          const SizedBox(
+                            height: 5.0,
+                          ),
                         const SizedBox(height: 14.0), // Top padding
                         if (selectedPhoto == -1) buildColorblindnessSelector(),
-                        if (selectedPhoto == -1) const SizedBox(height:10.0),
+                        if (selectedPhoto == -1) const SizedBox(height: 10.0),
                         if (selectedPhoto == -1) buildActionButtonsRow1(),
                         if (selectedPhoto != -1) buildActionButtonsRow2(),
                         const SizedBox(height: 14.0), // Top padding
-                        if (photos.isNotEmpty) buildPhotoSelector(), // Padding between rows
+                        if (photos.isNotEmpty)
+                          buildPhotoSelector(), // Padding between rows
                       ],
                     ),
                   ),
