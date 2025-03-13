@@ -4,10 +4,9 @@ import 'package:clarity/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'dart:async';
-
 import 'package:flutter_tts/flutter_tts.dart';
 
 class TextToSpeech extends StatefulWidget {
@@ -23,66 +22,73 @@ class _TextToSpeechState extends State<TextToSpeech> {
   late File _image = File("assets/logo.png");
   final picker = ImagePicker();
   String _ocrText = "";
-
   TextEditingController text = TextEditingController();
-
   double volume = .5;
   String language = 'English';
   String selectedLanguage = 'en-US';
-
+  final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
   bool isPlaying = false;
   final speech = FlutterTts();
+  List<Map> _voices = [];
+  Map? _currentVoice;
+
+  @override
+  void initState() {
+    super.initState();
+    initTTS();
+  }
+
+  // Existing functionality methods remain the same
+  void initTTS() {
+    speech.getVoices.then((data) {
+      try {
+        List<Map> voices = List<Map>.from(data);
+        setState(() {
+          _voices = voices.where((voice) => voice["name"].contains("e")).toList();
+          _currentVoice = _voices.last;
+          setVoice(_currentVoice!);
+        });
+      } catch (e) {
+        print(e);
+      }
+    });
+  }
+
+  void setVoice(Map voice) {
+    speech.setVoice({"name": voice["name"], "locale": voice["locale"]});
+  }
 
   void _ocr(url) async {
-    _ocrText =
-        await FlutterTesseractOcr.extractText(url, language: 'eng', args: {
-      "preserve_interword_spaces": "1",
-    });
+    final RecognizedText recognizedText = await textRecognizer.processImage(
+      InputImage.fromFilePath(url),
+    );
+    _ocrText = recognizedText.text;
+    text.text = recognizedText.text;
   }
 
   Future getImageFromGallery() async {
     try {
-      final newimage =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-      await Future.delayed(const Duration(seconds: 2));
+      final newimage = await ImagePicker().pickImage(source: ImageSource.gallery);
       setState(() {
         _image = File(newimage!.path);
-        text.text =
-            "Many people have some type of visual problem at some point in their lives. Some can no longer see objects far away. Others have problems reading small print. These types of conditions are often easily treated with eyeglasses or contact lenses.";
+        _ocr(newimage.path);
+        text.text = _ocrText;
       });
     } on PlatformException catch (e) {
-      print(e.code);
       if (e.code.contains("photo_access_denied")) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Photos Permission Required'),
-            content: const Text(
-                'This app needs photos access to import photos. Please grant permission in the app settings.'),
-            actions: [
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              TextButton(
-                child: const Text('Open Settings'),
-                onPressed: () => AppSettings.openAppSettings(),
-              ),
-            ],
-          ),
+        _showPermissionDialog(
+          'Photos Permission Required',
+          'This app needs photos access to import photos. Please grant permission in the app settings.',
         );
       }
     } catch (e) {
       print(e);
     }
-    //check whether we have photos permission
   }
 
-//Image Picker function to get image from camera
   Future getImageFromCamera() async {
     try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.camera);
+      final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
       setState(() {
         if (pickedFile != null) {
           _image = File(pickedFile.path);
@@ -91,30 +97,35 @@ class _TextToSpeechState extends State<TextToSpeech> {
         }
       });
     } on PlatformException catch (e) {
-      print(e.code);
       if (e.code.contains("camera_access_denied")) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Camera Permission Required'),
-            content: const Text(
-                'This app needs camera access to take photos. Please grant permission in the app settings.'),
-            actions: [
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              TextButton(
-                child: const Text('Open Settings'),
-                onPressed: () => AppSettings.openAppSettings(),
-              ),
-            ],
-          ),
+        _showPermissionDialog(
+          'Camera Permission Required',
+          'This app needs camera access to take photos. Please grant permission in the app settings.',
         );
       }
     } catch (e) {
       print(e);
     }
+  }
+
+  void _showPermissionDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text('Open Settings'),
+            onPressed: () => AppSettings.openAppSettings(),
+          ),
+        ],
+      ),
+    );
   }
 
   Future showOptions() async {
@@ -125,18 +136,14 @@ class _TextToSpeechState extends State<TextToSpeech> {
           CupertinoActionSheetAction(
             child: const Text('Photo Gallery'),
             onPressed: () {
-              // close the options modal
               Navigator.of(context).pop();
-              // get image from gallery
               getImageFromGallery();
             },
           ),
           CupertinoActionSheetAction(
             child: const Text('Camera'),
             onPressed: () {
-              // close the options modal
               Navigator.of(context).pop();
-              // get image from camera
               getImageFromCamera();
             },
           ),
@@ -145,35 +152,46 @@ class _TextToSpeechState extends State<TextToSpeech> {
     );
   }
 
-  Widget buildButton(IconData icon, String label, Color color,
-      VoidCallback onPressed, bool isPlay) {
+  Widget _buildControlButton(
+      IconData icon,
+      String label,
+      Color color,
+      VoidCallback onPressed,
+      bool isPlay,
+      ) {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withOpacity(0.3),
             spreadRadius: 1,
-            blurRadius: 3,
+            blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: MaterialButton(
         onPressed: onPressed,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isPlay ? Icons.pause : icon,
-              color: isPlay ? Colors.orange : Colors.white,
+              color: lighterTertiaryColor,
+              size: 24,
             ),
-            const SizedBox(width: 5.0),
+            const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: lighterTertiaryColor,
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           ],
@@ -182,228 +200,270 @@ class _TextToSpeechState extends State<TextToSpeech> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: lighterTertiaryColor,
-        appBar: AppBar(
-          title: Text(
-            'Text To Speech'.toUpperCase(),
-            style: TextStyle(
-                color: lighterTertiaryColor,
-                fontWeight: FontWeight.w800,
-                fontSize: 24),
-          ),
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: oppositeTertiaryColor,
-          leading: TextButton(
-            child: Icon(
-              Icons.arrow_back_ios,
-              color: tertiaryColor,
+  Widget _buildImagePreview() {
+    if (_image.path != "assets/logo.png") {
+      return Container(
+        width: 400,
+        height: 500,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            onPressed: () => Navigator.of(context).pop(),
+          ],
+        ),
+        child: InteractiveViewer(
+          maxScale: 5.0,
+          minScale: 1,
+          boundaryMargin: const EdgeInsets.all(double.infinity),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.file(_image),
           ),
         ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 20,
-                ),
-                Center(
-                  child: (_image.path != "assets/logo.png")
-                      ? InteractiveViewer(
-                          maxScale: 5.0,
-                          minScale: 0.1,
-                          boundaryMargin: const EdgeInsets.all(double.infinity),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: Image.file(_image)),
-                        )
-                      : Container(
-                          width: 360,
-                          height: 360,
-                          decoration: BoxDecoration(
-                            color: secondaryColor.withOpacity(0.075),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.fromBorderSide(
-                              BorderSide(
-                                  color: oppositeTertiaryColor, width: 4),
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.photo_camera_back_outlined,
-                              size: 200,
-                            ),
-                            // Text(
-                            //   'No Image selected'.toUpperCase(),
-                            //   style: TextStyle(
-                            //     color: oppositeTertiaryColor,
-                            //     fontSize: 20,
-                            //     fontWeight: FontWeight.w700,
-                            //   ),
-                            // ),
-                          ),
-                        ),
-                ),
-                CupertinoButton(
-                  onPressed: showOptions,
-                  child: Container(
-                    width: 340,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: darkerSecondaryColor,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.fromBorderSide(
-                        BorderSide(color: darkerSecondaryColor, width: 3.0),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "SELECT IMAGE",
-                        style: TextStyle(
-                            color: lighterTertiaryColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Card(
-                    color: lighterTertiaryColor,
-                    surfaceTintColor: primaryColor.withOpacity(0.9),
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      side: BorderSide(width: 1, color: lighterTertiaryColor),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        children: [
-                          TextField(
-                            minLines: 5,
-                            maxLength: null,
-                            maxLines: null,
-                            controller: text,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: lighterTertiaryColor,
-                              hintText:
-                                  'Edit the recognized text to correct for any errors. Press the play button below to convert to speech.',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: oppositeTertiaryColor, width: 2),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          DropdownButton<String>(
-                            value: language,
-                            onChanged: (newLang) async {
-                              setState(() {
-                                language = newLang!;
-                              });
+      );
+    }
 
-                              switch (language) {
-                                case 'English':
-                                  setState(() {
-                                    selectedLanguage = 'en-US';
-                                  });
-                                  break;
-                                case 'Spanish':
-                                  setState(() {
-                                    selectedLanguage = 'es-ES';
-                                  });
-                                  break;
-                                case 'French':
-                                  setState(() {
-                                    selectedLanguage = 'fr-FR';
-                                  });
-                                  break;
-                              }
-                            },
-                            items: ['English', 'Spanish', 'French']
-                                .map((language) {
-                              return DropdownMenuItem<String>(
-                                value: language,
-                                child: Text(language),
-                              );
-                            }).toList(),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Slider(
-                                  value: volume,
-                                  min: 0.0,
-                                  max: 0.8,
-                                  thumbColor: primaryColor,
-                                  activeColor: secondaryColor,
-                                  onChanged: (newRate) {
-                                    setState(() {
-                                      volume = newRate;
-                                    });
-                                  },
-                                ),
-                              ),
-                              const Icon(CupertinoIcons.speedometer, size: 30)
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              buildButton(
-                                  Icons.play_arrow, 'PLAY', Colors.green,
-                                  () async {
-                                if (isPlaying) {
-                                  await speech.pause();
-                                } else {
-                                  // await speech.setPitch(4);
-                                  await speech.setSpeechRate(volume);
-                                  await speech.setLanguage(selectedLanguage);
-                                  await speech.speak(text.text);
-                                }
-                                setState(() {
-                                  isPlaying = !isPlaying;
-                                });
-                                speech.setCompletionHandler(() {
-                                  setState(() {
-                                    isPlaying = !isPlaying;
-                                  });
-                                });
-                              }, isPlaying),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              buildButton(Icons.stop, 'STOP', Colors.red,
-                                  () async {
-                                speech.stop();
-                                setState(() {
-                                  isPlaying = false;
-                                });
-                              }, false),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+    return Container(
+      width: 360,
+      height: 360,
+      decoration: BoxDecoration(
+        color: secondaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: darkerSecondaryColor.withOpacity(0.3),
+          width: 2,
+        ),
+      ),
+      child: Icon(
+        Icons.photo_camera_back_outlined,
+        size: 120,
+        color: darkerSecondaryColor.withOpacity(0.5),
+      ),
+    );
+  }
+
+  Widget _buildVoiceControls() {
+    return Card(
+      color: lighterPrimaryColor.withOpacity(0.1),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: darkerSecondaryColor.withOpacity(0.5)
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              minLines: 5,
+              maxLines: null,
+              controller: text,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: lighterTertiaryColor,
+                hintText: 'Edit the recognized text to correct for any errors.',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: darkerSecondaryColor,
                   ),
                 ),
-                const SizedBox(height: 30),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: darkerSecondaryColor.withOpacity(0.3),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildLanguageDropdown(),
+                _buildVoiceDropdown(),
               ],
             ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: volume,
+                    min: 0.0,
+                    max: 0.8,
+                    activeColor: primaryColor,
+                    inactiveColor: secondaryColor.withOpacity(0.2),
+                    onChanged: (value) => setState(() => volume = value),
+                  ),
+                ),
+                Icon(
+                  CupertinoIcons.speedometer,
+                  size: 24,
+                  color: primaryColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildControlButton(
+                  Icons.play_arrow,
+                  'PLAY',
+                  Colors.green,
+                      () async {
+                    if (isPlaying) {
+                      await speech.pause();
+                    } else {
+                      await speech.setSpeechRate(volume);
+                      await speech.setLanguage(selectedLanguage);
+                      await speech.speak(text.text);
+                    }
+                    setState(() => isPlaying = !isPlaying);
+                    speech.setCompletionHandler(() {
+                      setState(() => isPlaying = !isPlaying);
+                    });
+                  },
+                  isPlaying,
+                ),
+                const SizedBox(width: 16),
+                _buildControlButton(
+                  Icons.stop,
+                  'STOP',
+                  Colors.red,
+                      () async {
+                    speech.stop();
+                    setState(() => isPlaying = false);
+                  },
+                  false,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: darkerSecondaryColor.withOpacity(0.3),
+        ),
+      ),
+      child: DropdownButton<String>(
+        value: language,
+        underline: const SizedBox(),
+        items: ['English', 'Spanish', 'French'].map((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (newValue) {
+          setState(() {
+            language = newValue!;
+            selectedLanguage = {
+              'English': 'en-US',
+              'Spanish': 'es-ES',
+              'French': 'fr-FR',
+            }[newValue]!;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildVoiceDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: darkerSecondaryColor.withOpacity(0.3),
+        ),
+      ),
+      child: DropdownButton(
+        value: _currentVoice,
+        underline: const SizedBox(),
+        items: _voices.map((voice) {
+          return DropdownMenuItem(
+            value: voice,
+            child: Text(voice["name"]),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _currentVoice = value as Map?;
+            if (_currentVoice != null) {
+              setVoice(_currentVoice!);
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: lighterTertiaryColor,
+      appBar: AppBar(
+        title: Text(
+          'Text to Speech',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: oppositeTertiaryColor,
+          ),
+        ),
+
+        scrolledUnderElevation: 0.0,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(color: oppositeTertiaryColor),
+      ),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildImagePreview(),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: showOptions,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: darkerSecondaryColor,
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  "SELECT IMAGE",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: lighterTertiaryColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildVoiceControls(),
+            ],
           ),
         ),
       ),

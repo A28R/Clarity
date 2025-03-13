@@ -109,8 +109,8 @@ class _MyColorFilterState extends State<MyColorFilter> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildFlashButton(),
+        _buildTakePictureButton(),
         _buildSwitchCameraButton(),
-        _buildTakePictureButton()
       ],
     );
   }
@@ -201,7 +201,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
           }
 
         },
-        child: const Icon(CupertinoIcons.light_max),
+        child: Icon(CupertinoIcons.light_max, color: oppositeTertiaryColor,),
       ),
       bgcolor: (flash) ? Colors.grey.shade600
         : Colors.grey.shade100,
@@ -227,7 +227,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
           });
           HapticFeedback.mediumImpact();
         },
-        child: const Icon(CupertinoIcons.switch_camera),
+        child: Icon(CupertinoIcons.switch_camera, color: oppositeTertiaryColor,),
       ),
       bgcolor: (_controller.description == back_cam) ? Colors.grey.shade600
           : Colors.grey.shade100,
@@ -268,7 +268,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
           }
 
         },
-        child: const Icon(CupertinoIcons.photo_camera_solid),
+        child: Icon(CupertinoIcons.photo_camera_solid, color: oppositeTertiaryColor,),
       ),
       bgcolor: Colors.grey.shade600,
       width: 75,
@@ -289,7 +289,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
             );
           }
         },
-        child: const Icon(CupertinoIcons.share),
+        child: Icon(CupertinoIcons.share, color: oppositeTertiaryColor,),
       ),
       bgcolor: Colors.grey.shade600,
       width: 75,
@@ -307,7 +307,7 @@ class _MyColorFilterState extends State<MyColorFilter> {
             selectedPhoto = -1;
           });
         },
-        child: const Icon(CupertinoIcons.delete),
+        child: Icon(CupertinoIcons.delete, color: oppositeTertiaryColor,),
       ),
       bgcolor: Colors.grey.shade600,
       width: 75,

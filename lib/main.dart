@@ -23,7 +23,6 @@ Camera handles fetching camera and other data
 
 final List<IconData> icons = [
   CupertinoIcons.mic_circle,
-  CupertinoIcons.viewfinder_circle,
   CupertinoIcons.zoom_in,
   CupertinoIcons.color_filter,
   CupertinoIcons.bubble_left_bubble_right
@@ -31,13 +30,13 @@ final List<IconData> icons = [
 final List<String> labels = [
   "Text-To-Speech",
   "Magnifier",
-  "Colorblindness Filter",
+  "Color Filter",
   "AI Questions"
 ];
 final List<String> descriptions = [
   "Recognizes text from an image, then recites the text",
-  "Magnifies the live camera with a slider, allows user to take pictures",
-  "Filters live camera using various color blindness presets",
+  "Magnifies the front and back camera with a slider",
+  "Filters camera using various color blindness presets",
   "Uses AI to answer questions about an image"
 ];
 

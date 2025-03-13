@@ -17,6 +17,9 @@ class CamWidget extends StatelessWidget {
 
   @override
   Widget build(context) {
+    final screenSize = MediaQuery.of(context).size;
+    final bool isSmallScreen = screenSize.height < 700;
+    final double imageHeight = isSmallScreen ? screenSize.height * 0.25 : screenSize.height * 0.3;
     if (selectedPhoto == -1)
       return FutureBuilder<void>(
       future: initializeCamFuture,
@@ -41,7 +44,7 @@ class CamWidget extends StatelessWidget {
             ),
           );
         } else {
-          return const Loading();
+          return Transform.translate(offset:Offset(0.0, screenSize.height*(-0.15)), child: const Loading());
         }
       },
     );
