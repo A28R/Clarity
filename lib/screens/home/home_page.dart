@@ -3,10 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
 
   HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -53,8 +58,12 @@ class HomePage extends StatelessWidget {
                   ),
                   margin: EdgeInsets.only(top: 23),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context,"/settings");
+                    onTap: () async {
+                      final result = await Navigator.of(context).pushNamed('/settings');
+                      if (result == true) {
+                        // Force rebuild of this screen
+                        setState((){});
+                      }
                       HapticFeedback.mediumImpact();
                     },
                     child: AspectRatio(
@@ -144,7 +153,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 30.0,),
               Expanded(
                 child: Tooltip(
